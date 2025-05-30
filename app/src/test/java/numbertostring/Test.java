@@ -1,4 +1,4 @@
-package app.src.test.java.numbertostring;
+package numbertostring;
 
 public @interface Test {
 

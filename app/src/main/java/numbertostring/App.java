@@ -8,7 +8,7 @@ public class App {
 
     public static void main(String[] args) {
         try {
-            double value = 55;
+            double value = -1590231;
             IntegerNum num = IntegerNum.builder()
                 .value(value)
                 .build();

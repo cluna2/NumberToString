@@ -2,10 +2,12 @@ package numbertostring.api;
 
 import numbertostring.converter.IntegerNumConverter;
 import numbertostring.converter.LocalizedNumberConverter;
-import numbertostring.pojo.IntegerNum;
 import numbertostring.pojo.Number;
 import java.util.Locale;
 
+/*
+ * Consumers can call the APIs specified here to convert a number to a string
+ */
 public class NumberToWordsAPI {
 
     /**
@@ -26,8 +28,16 @@ public class NumberToWordsAPI {
      * @return Word representation in the given language
      */
     public static String convertNumberToWordsWithLocale(Number number, Locale locale) {
-        LocalizedNumberConverter converter = getConverterForType(number, locale);
-        return converter.convertToWords(number);
+        LocalizedNumberConverter converter;
+        try {
+            converter = getConverterForType(number, locale);
+            return converter.convertToWords(number);
+        } catch (UnsupportedOperationException e) {
+            System.out.printf("Error creating covnerter: %s", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.printf("Error converting number: %s", e.getMessage());
+        }
+        return "";
     }
 
     /*
@@ -37,9 +47,11 @@ public class NumberToWordsAPI {
      * @return LocalizedNumberConverter of same type as Number type
      */
     private static LocalizedNumberConverter getConverterForType(Number number, Locale locale) {
-        if (number instanceof IntegerNum) {
-            return new IntegerNumConverter(locale);
+        switch (number.getType()) {
+            case Number.Type.INTEGER: 
+                return new IntegerNumConverter(locale);
+            default:
+                throw new UnsupportedOperationException("Number type not yet supported.");
         }
-        throw new UnsupportedOperationException("Number type not yet supported.");
     }
 }
