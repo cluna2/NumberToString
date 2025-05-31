@@ -1,68 +1,87 @@
 package numbertostring.converter;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
-import numbertostring.constants.LanguageConstants;
+import lombok.Getter;
+import numbertostring.language.LanguageRules;
+import numbertostring.language.DefaultLanguageRulesProvider;
 import numbertostring.pojo.IntegerNum;
 import numbertostring.pojo.Number;
 
-public class IntegerNumConverter extends LocalizedNumberConverter{
-    private String[] ones = LanguageConstants.LANGUAGE_ONES.get(getLocale().getLanguage());
-    private String[] teens = LanguageConstants.LANGUAGE_TEENS.get(getLocale().getLanguage());
-    private String[] tens = LanguageConstants.LANGUAGE_TENS.get(getLocale().getLanguage());
-    private String[] groupStrings = LanguageConstants.LANGUAGE_LARGE_GROUP_STRINGS.get(getLocale().getLanguage());
-    private String hundred = LanguageConstants.LANGUAGE_HUNDRED.get(getLocale().getLanguage());
-    
-    
-    private Integer chunkSize = 1000;
+
+/**
+ * This class is a subclass of a LocalizedNumberConverter.
+ * Each {@code IntegerNumConverter} is tied to a specified locale and 
+ * contains possibly empty fields to hold constants relating to the language's names
+ * for numbers. Other fields include optional scientific notation formatting and a chunkSize that 
+ * may vary depending on locale.
+ * 
+ * This class provides a method to convert integer values to the word form 
+ * representation of the provided language. The current implementation assumes the numerical structure of 
+ * English spoken numbers (ones, teens, tens) which may not hold for languages with different digit groupings 
+ * (e.g. Japanese grouping by 10,000) or a different numerical structure 
+ * (e.g. Hindi with lakh (100,000) and crore (10,000,000)). This implementation may be generalized to support
+ * arbitrary digit groupings in the future.
+ * 
+ */
+@Getter
+public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
+
+    /** Boolean to determine if scientific format should be returned as string representation. */
+    private final boolean scientificFormat = false;
     public IntegerNumConverter() {
-        super(Locale.ENGLISH);  // Explicitly pass default locale
+        // Explicitly pass English locale as default
+        super(new DefaultLanguageRulesProvider().getLanguageRules(Locale.ENGLISH));
     }
 
     /**
-     * Constructor with user-defined Locale.
+     * Constructor with user-defined rules.
+     * @param rules object holding language-specific constants
      */
-    public IntegerNumConverter(Locale locale) {
-        super(locale);  // Explicitly pass user-defined locale
+    public IntegerNumConverter(LanguageRules rules) {
+        super(rules); 
     }
 
     @Override
-    public String convertToWords(Number number) {
+    public <T extends Number<T>> String convertToWords(T number) {
         if (!(number instanceof IntegerNum)) {
             throw new IllegalArgumentException("Unsupported number type.");
         }
 
         IntegerNum integerNum = (IntegerNum) number;
-        int value = integerNum.getValue().intValue();
-
-        return convertNumberToWords(value);
+        return convertNumberToWords(integerNum);
     }
 
     /**
      * Converts an integer to its word representation.
-     * Handles Integer.MIN_VALUE as a special case to avoid underflow after negation.
-     * @param num
+     * @param num IntegerNum 
      * @return
      */
-    private String convertNumberToWords(Integer num) {
-        String languageCode = getLocale().getLanguage();
-        if (num.equals(0)) {
-            return getZeroWord(languageCode);
+    private String convertNumberToWords(IntegerNum num) {
+        if (num.equals(IntegerNum.ZERO)) {
+            return rules.getWord(0);
         }
 
-        if (num.equals(IntegerNum.MIN_VAL)) {
-            return getMinValueWord(languageCode);
-        }
+        // For numbers whose numeral representation is pre-computed, return its representation immediately.
+        String smallNum;
+        if (!(smallNum = rules.getWord(num.getValue().intValue())).isEmpty()) {
+            return smallNum;
+        } 
 
-        boolean isNegative = num < 0;
+        boolean isNegative = num.isNegative();
+        BigInteger absoluteInteger = num.getValue();
         if (isNegative) {
-            num = -num;
+            absoluteInteger = absoluteInteger.negate();
         }
         StringBuilder output = new StringBuilder();
-        String positiveString = processNumberRecursively(num);
+        String positiveString = processNumberRecursively(absoluteInteger);
 
         if (isNegative) {
-            output.insert(0, " " + getNegativeWord(languageCode) + " " + positiveString);
+            output.insert(0, " " + rules.getNegativeWord() + " " + positiveString);
             
         }
         return output.toString().trim();
@@ -77,57 +96,32 @@ public class IntegerNumConverter extends LocalizedNumberConverter{
      * @param num number to convert
      * @return
      */
-    private String processNumberRecursively(Integer number) {
+    private String processNumberRecursively(BigInteger current) {
         StringBuilder result = new StringBuilder();
-
-        int unitGroup = 0;
-        while (number > 0) {
-            if (number % this.chunkSize != 0) {
-                result.insert(0, processChunk(number % this.chunkSize) + " " + groupStrings[unitGroup] + " ");
-            }
-            number /= chunkSize;
-            unitGroup++;
+        
+        while (current.compareTo(BigInteger.ZERO) > 0) {
+            int smallestRecognized = getSmallestRecognizedPart(current);
+            result.append(rules.getWord(smallestRecognized)).append(" ");
+            current = current.subtract(BigInteger.valueOf(smallestRecognized));
         }
-
         return result.toString().trim();
     }
 
     /**
-     * Processes chunks of numbers that are sufficiently small. 
-     * Currently supports numbers from -999 to 999 as default chunnkSize is 1000.
-     * Can be extended in to support an arbitrary chunkSize.
-     * @param number from -999 to 999  
-     * @return string form of number chunk
+     * Helper method to get the smallest recognized integer
+     * @param number
+     * @return
      */
-    private String processChunk(Integer smallNum) {
-        StringBuilder result = new StringBuilder();
-
-        if (smallNum >= 100) {
-            result.append(ones[smallNum / 100]).append(" " + hundred + " ");
-            smallNum %= 100;
-        }
-
-        if (smallNum >= 10 && smallNum < 20) {
-            result.append(teens[smallNum - 10]).append(" ");
-        } else {
-            if (smallNum >= 20) {
-                result.append(tens[smallNum / 10]).append(" ");
-            }
-            smallNum %= 10;
-            if (smallNum > 0) {
-                result.append(ones[smallNum]).append(" ");
+    private int getSmallestRecognizedPart(BigInteger number) {
+        List<Integer> sortedKeys = new ArrayList<>(rules.getNumerals().keySet());
+        Collections.sort(sortedKeys, Collections.reverseOrder());
+        for (Integer key : sortedKeys) {
+            if (BigInteger.valueOf(key).compareTo(number) <= 0) {
+                return key;
             }
         }
-
-        return result.toString().trim();
+        return -1; // Fallback in case the map does not cover the number
     }
 
-    /**
-     * 
-     */
-    @Override
-    protected String getMinValueWord(String languageCode) {
-        return LanguageConstants.LANGUAGE_INTEGER_MIN_VALUE.get(languageCode);
-    }
 
 }

@@ -1,7 +1,7 @@
 package numbertostring.api;
 
-import numbertostring.converter.IntegerNumConverter;
 import numbertostring.converter.LocalizedNumberConverter;
+import numbertostring.factory.NumberConverterFactory;
 import numbertostring.pojo.Number;
 import java.util.Locale;
 
@@ -14,9 +14,10 @@ public class NumberToWordsAPI {
      * Converts any Number type to English word form string representation.
      * Use convertNumberToWordsWithLocale to specify locale.
      * @param number Instance of Number
+     * @param <T> Type of number
      * @return Word representation in English by default.
      */
-    public static String convertNumberToWords(Number number) {
+    public static <T extends Number<T>> String convertNumberToWords(T number) {
         return convertNumberToWordsWithLocale(number, Locale.ENGLISH);
     }
 
@@ -25,12 +26,13 @@ public class NumberToWordsAPI {
      *
      * @param number Instance of Number
      * @param locale Locale for language conversion
+     * @param <T> Type of number
      * @return Word representation in the given language
      */
-    public static String convertNumberToWordsWithLocale(Number number, Locale locale) {
-        LocalizedNumberConverter converter;
+    public static <T extends Number<T>> String convertNumberToWordsWithLocale(T number, Locale locale) {
+        LocalizedNumberConverter<T> converter;
         try {
-            converter = getConverterForType(number, locale);
+            converter = NumberConverterFactory.getConverterForType(number, locale);
             return converter.convertToWords(number);
         } catch (UnsupportedOperationException e) {
             System.out.printf("Error creating covnerter: %s", e.getMessage());
@@ -38,20 +40,5 @@ public class NumberToWordsAPI {
             System.out.printf("Error converting number: %s", e.getMessage());
         }
         return "";
-    }
-
-    /*
-     * Creates a number convertor of the same Number type as the given number.
-     * @param number instance of Number
-     * @param Locale locale for language conversion
-     * @return LocalizedNumberConverter of same type as Number type
-     */
-    private static LocalizedNumberConverter getConverterForType(Number number, Locale locale) {
-        switch (number.getType()) {
-            case Number.Type.INTEGER: 
-                return new IntegerNumConverter(locale);
-            default:
-                throw new UnsupportedOperationException("Number type not yet supported.");
-        }
     }
 }
