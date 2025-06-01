@@ -1,6 +1,7 @@
 package numbertostring.factory;
 
 import numbertostring.converter.LocalizedNumberConverter;
+import numbertostring.exception.UnsupportedLanguageException;
 import numbertostring.language.DefaultLanguageRulesProvider;
 import numbertostring.language.LanguageRules;
 import numbertostring.pojo.Number;
@@ -12,6 +13,7 @@ import java.util.Locale;
  * for a provided Number type.
  */
 public class NumberConverterFactory {
+
     /** Basic constructor for a NumberConverterFactory. */
     public NumberConverterFactory() {}
 
@@ -37,9 +39,12 @@ public class NumberConverterFactory {
      * @return language rules for specified locale
      */
     private LanguageRules getLanguageRulesFromLocale(Locale locale) {
+        if (locale == null) {
+            throw new IllegalArgumentException("Locale cannot be null.");
+        }
         LanguageRules languageRules = new DefaultLanguageRulesProvider().getLanguageRules(locale);
         if (languageRules == null) {
-            throw new IllegalArgumentException("Language not yet supported.");
+            throw new UnsupportedLanguageException("Language not yet supported.");
         }
         return languageRules;
             

@@ -18,6 +18,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import numbertostring.converter.LocalizedNumberConverter;
+import numbertostring.dto.NumberToWordsRequest;
+import numbertostring.dto.NumberToWordsResponse;
+import numbertostring.exception.NumberConversionException;
 import numbertostring.factory.NumberConverterFactory;
 import numbertostring.pojo.IntegerNum;
 
@@ -25,10 +28,13 @@ import numbertostring.pojo.IntegerNum;
 public class NumberToWordsServiceTest {
     
 
-    private BigInteger value;
+    private static final String FAILURE_STRING = "";
+    private static final String expectedNumString = "One Thousand";
+    private static final BigInteger value = BigInteger.valueOf(1000);;
+
     private IntegerNum num;
-    private String expectedNumString = "One Thousand";
-    
+    private NumberToWordsRequest<IntegerNum> req;
+    private NumberToWordsResponse res;
     
     @Mock
     private LocalizedNumberConverter<IntegerNum> mockConverter;
@@ -41,25 +47,46 @@ public class NumberToWordsServiceTest {
 
     @BeforeEach
     void setUp() {
-        value = BigInteger.valueOf(1000);
         num = new IntegerNum(value);
+        req = NumberToWordsRequest.<IntegerNum>builder()
+            .number(num)
+            .build();
         api = NumberToWordsService.create(factory);
     }
 
     @Test
-    void testConvertNumberToWords() {
+    void testConvertNumberToWordsSuccess() {
 
-        when(mockConverter.convertToWords(any(IntegerNum.class)))
-            .thenReturn(expectedNumString);
         when(factory.getConverterForType(any(IntegerNum.class), eq(Locale.ENGLISH)))
             .thenReturn(mockConverter);
+        when(mockConverter.convertToWords(any(IntegerNum.class)))
+            .thenReturn(expectedNumString);
 
-
-        assertNotNull(mockConverter, "Mock converter instance should not be null");
-        assertEquals(expectedNumString, api.convertNumberToWords(num));
+        res = api.convertNumberToWords(req);
+        assertEquals(expectedNumString, res.getWords());
+        assertEquals(NumberToWordsResponse.Status.SUCCESS, res.getStatus());
 
         verify(factory).getConverterForType(any(IntegerNum.class), eq(Locale.ENGLISH));
         verify(mockConverter).convertToWords(num);
 
+    }
+
+    @Test
+    void whenConvertFails_thenResponseHasException() {
+        when(factory.getConverterForType(any(IntegerNum.class), eq(Locale.ENGLISH)))
+            .thenReturn(mockConverter);
+        when(mockConverter.convertToWords(any(IntegerNum.class)))
+            .thenThrow(new IllegalArgumentException("Bad argument"));
+
+        res = api.convertNumberToWords(req);
+        assertEquals(FAILURE_STRING, res.getWords());
+        assertEquals(NumberConversionException.class, api.convertNumberToWords(req).getException().getClass());
+    }
+    
+    /** Runs entire service. */
+    @Test
+    void testConvertNumberToWordsWithoutMocks() {
+        api = NumberToWordsService.create();
+        // assertEquals(expectedNumString, api.convertNumberToWords(req));
     }
 }

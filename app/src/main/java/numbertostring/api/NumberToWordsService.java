@@ -1,9 +1,12 @@
 package numbertostring.api;
 
 import numbertostring.converter.LocalizedNumberConverter;
+import numbertostring.dto.NumberToWordsRequest;
+import numbertostring.dto.NumberToWordsResponse;
+import numbertostring.exception.NumberConversionException;
 import numbertostring.factory.NumberConverterFactory;
 import numbertostring.pojo.Number;
-import java.util.Locale;
+
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -14,13 +17,14 @@ import com.google.common.annotations.VisibleForTesting;
  */
 public class NumberToWordsService {
 
+
     /** Default factory that the service uses to create a converter. */
     private static final NumberConverterFactory DEFAULT_FACTORY = new NumberConverterFactory();
 
     /** Converter object that is responsible for performing the acutal conversion.
      * It is parametrized by the type of Number a user passes in.
      */
-    private LocalizedNumberConverter<?> converter;
+    private LocalizedNumberConverter<? extends Number<?>> converter;
 
     /**
      * A factory responsible for creating a converter. 
@@ -39,7 +43,7 @@ public class NumberToWordsService {
     /** Private constructor enforcing use of a converter factory. 
      * @param converterFactory factory 
     */
-    private NumberToWordsService(NumberConverterFactory converterFactory) {
+    private NumberToWordsService(NumberConverterFactory converterFactory) { 
         this.converterFactory = converterFactory;
     }
     
@@ -60,8 +64,8 @@ public class NumberToWordsService {
      * @param <T> Type of number
      * @return Word representation in English by default.
      */
-    public <T extends Number<T>> String convertNumberToWords(T number) {
-        return convertNumberToWordsWithLocale(number, Locale.ENGLISH);
+    public <T extends Number<T>> NumberToWordsResponse convertNumberToWords(NumberToWordsRequest<T> req) {
+        return convertNumberToWordsWithLocale(req);
     }
 
     /**
@@ -71,17 +75,25 @@ public class NumberToWordsService {
      * @param number Instance of Number
      * @param locale Locale for language conversion
      * @param <T> Type of number
-     * @return Word representation in the given language if successful, or empty string otherwise
+     * @return Word representation in the given language if successful
      */
-    public <T extends Number<T>> String convertNumberToWordsWithLocale(T number, Locale locale) {
+    public <T extends Number<T>> NumberToWordsResponse convertNumberToWordsWithLocale(NumberToWordsRequest<T> req) {
+        NumberToWordsResponse res;
         try {
-            this.converter = converterFactory.getConverterForType(number, locale);
-            return converter.convertToWords(number);
-        } catch (UnsupportedOperationException e) {
-            System.out.printf("Error creating converter: %s", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.out.printf("Error converting number: %s", e.getMessage());
+            this.converter = converterFactory.getConverterForType(req.getNumber().getType(), req.getLocale());
+            String words =  converter.convertToWords(req.getNumber());
+            res = NumberToWordsResponse.builder()
+                .words(words)
+                .status(NumberToWordsResponse.Status.SUCCESS)
+                .exception(null)
+                .build();
+        } catch (UnsupportedOperationException | IllegalArgumentException e ) {
+            res = NumberToWordsResponse.builder()
+                .words("")
+                .status(NumberToWordsResponse.Status.FAILURE)
+                .exception(new NumberConversionException(e.getMessage()))
+                .build();
         }
-        return "";
+        return res;
     }
 }

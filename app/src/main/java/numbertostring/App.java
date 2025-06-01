@@ -3,6 +3,8 @@ package numbertostring;
 import java.math.BigInteger;
 
 import numbertostring.api.NumberToWordsService;
+import numbertostring.dto.NumberToWordsRequest;
+import numbertostring.dto.NumberToWordsResponse;
 import numbertostring.pojo.IntegerNum;
 
 /**
@@ -25,8 +27,12 @@ public class App {
             BigInteger value = BigInteger.valueOf(21);
             IntegerNum num = new IntegerNum(value);
             NumberToWordsService api = NumberToWordsService.create();
-            String words = api.convertNumberToWords(num);
-            System.out.println(words);
+            NumberToWordsRequest<IntegerNum> req = NumberToWordsRequest.<IntegerNum>builder()
+                .number(num)
+                .build();
+            
+            NumberToWordsResponse response = api.convertNumberToWords(req);
+            System.out.println(response.getWords());
  
         } catch (IllegalArgumentException e) {
             System.out.println(e);

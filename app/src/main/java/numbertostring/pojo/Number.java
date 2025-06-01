@@ -19,7 +19,7 @@ import numbertostring.language.LanguageRules;
  */
 public abstract class Number<T extends Number<T>> {
     
-    /** Retrieves appropriate converter for the Number type T.
+    /** Retrieves appropriate converter for the Number type
      * Guranteed to return correct type as each Number knows its own 
      * Converter type. (e.g. IntegerNums return IntegerNumConverters)
      * 
@@ -33,6 +33,7 @@ public abstract class Number<T extends Number<T>> {
      * */
     protected final BigDecimal value;
 
-
+    
+    public abstract T getType();
 
 }

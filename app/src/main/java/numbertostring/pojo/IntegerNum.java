@@ -3,9 +3,8 @@ package numbertostring.pojo;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 import numbertostring.converter.IntegerNumConverter;
 import numbertostring.converter.LocalizedNumberConverter;
 import numbertostring.language.LanguageRules;
@@ -21,9 +20,7 @@ import numbertostring.language.LanguageRules;
  * arbitrarily large integers using {@code BigInteger}
  * 
  */
-@Data
-@EqualsAndHashCode(callSuper=false)
-@Accessors(chain = true)
+@SuperBuilder
 public class IntegerNum extends Number<IntegerNum>{
 
     /** Zero constant for this class. */
@@ -33,6 +30,7 @@ public class IntegerNum extends Number<IntegerNum>{
      * @param value to store
      * @return value as BigInteger
      */
+    @Getter
     private final BigInteger value;
 
     /**
@@ -44,6 +42,11 @@ public class IntegerNum extends Number<IntegerNum>{
         this.value = value;
     }
 
+    @Override
+    public IntegerNum getType() {
+        return this;
+    }
+    
     /**
      * Creates an IntegerNumConverter instance using specific language rules.
      * @param rules Set of specific language rules for number conversion

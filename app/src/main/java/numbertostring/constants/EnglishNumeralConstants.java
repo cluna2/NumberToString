@@ -5,14 +5,14 @@ import java.util.TreeMap;
 
 /**
  * Constants mapping number names to English words. Leading entries are null strings
- * for ease of implementation. Supports number-to-word conversion in {@code IntegerNumConverter}
+ * for ease of implementation. Supports number-to-word conversion for {@code LocalizedNumberConverter}
 */
 public class EnglishNumeralConstants {
 
     /**
-     * Defaut constructor
+     * Private constructor. Do not instantiate this class.
      */
-    public EnglishNumeralConstants() {}
+    private EnglishNumeralConstants() {}
 
 
     /** Map of ints to English numeral words up to one hundred. Uses a TreeMap to guarantee ascending order

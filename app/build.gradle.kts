@@ -20,19 +20,22 @@ repositories {
 }
 
 dependencies {
+    // This dependency is used by the application.
+    implementation(libs.guava)
+
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Mockito Core (Java)
     testImplementation("org.mockito:mockito-core:5.6.0")
-
     // Mockito JUnit 5 extension
     testImplementation("org.mockito:mockito-junit-jupiter:5.6.0")
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    // This dependency is used by the application.
-    implementation(libs.guava)
+    // Log4j interface 
+    implementation("org.apache.logging.log4j:log4j-api:2.17.1")
+    // Log4j-core (actual logging implementation)
+    implementation("org.apache.logging.log4j:log4j-core:2.17.1")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -61,4 +64,12 @@ tasks.named<Test>("test") {
 
 tasks.withType<JavaCompile> {
     options.compilerArgs.addAll(listOf("-Xlint:unchecked"))
+}
+
+tasks.javadoc {
+    source = fileTree("app/build/generated/sources/delombok/java/main/numbertostring")
+
+    // Exclude Lombok generated Builder code from Lombok Javadocs.
+    exclude("numbertostring/pojo/IntegerNum\$Builder")
+    exclude("numbertostring/pojo/Number\$Builder")
 }
