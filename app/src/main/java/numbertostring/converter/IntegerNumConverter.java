@@ -31,10 +31,8 @@ import numbertostring.pojo.Number;
 @Getter
 public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
 
-    /** Boolean to determine if scientific format should be returned as string representation. */
-    private final boolean scientificFormat = false;
+    /** Default constructor assumes English for conversion */
     public IntegerNumConverter() {
-        // Explicitly pass English locale as default
         super(new DefaultLanguageRulesProvider().getLanguageRules(Locale.ENGLISH));
     }
 
@@ -88,8 +86,7 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
     }
 
     /**
-     * Processes numbers by breaking them into groupings of size chunkSize.
-     * The chunkSize is set to English default of 1000. 
+     * Processes numbers by breaking them into groupings.
      * Different languages can have different digit groupings for numbers that are sufficiently large.
      * E.g. Japanese using 4-digit groupings (10,000) vs English (1,000)
      * Future versions of this library can extend this function and its helper to use arbitrary chunkSizes.
@@ -108,7 +105,7 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
     }
 
     /**
-     * Helper method to get the smallest recognized integer
+     * Helper method to get the smallest recognized integer that has a number that exists for it.
      * @param number
      * @return
      */

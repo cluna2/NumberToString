@@ -5,14 +5,17 @@ import java.math.BigInteger;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.SuperBuilder;
+import lombok.experimental.Accessors;
+import numbertostring.converter.IntegerNumConverter;
+import numbertostring.converter.LocalizedNumberConverter;
+import numbertostring.language.LanguageRules;
+
 
 
 
 /**
- * Wrapper for the {@code Integer} class that subclasses a {@code Number}.
+ * Wrapper for the {@code BigInteger} class that subclasses a {@code Number}.
  * Uses {@code BigInteger} to store underlying value.
- * This implementaion defaults to a 32-bit integer range.
  * <p>
  * Has optional min/max range restrictions to represent 
  * arbitrarily large integers using {@code BigInteger}
@@ -20,48 +23,36 @@ import lombok.experimental.SuperBuilder;
  */
 @Data
 @EqualsAndHashCode(callSuper=false)
-@SuperBuilder
+@Accessors(chain = true)
 public class IntegerNum extends Number<IntegerNum>{
 
     /** Zero constant for this class. */
     public static final IntegerNum ZERO = new IntegerNum(BigInteger.ZERO);
 
-    /** The integer value stored using BigInteger */
+    /** The integer value stored using BigInteger.
+     * @param value to store
+     * @return value as BigInteger
+     */
     private final BigInteger value;
-     /** 
-     * Minimum integer value this instance can hold.
-     */
-    private final BigInteger minValue;
 
-    /** 
-     * Maximum integer value this class can hold.
-     */
-    private final BigInteger maxValue;
-
-    /** 
-     * Constructs an IntegerNum instance with a default 32-bit rnage.
-     * @param value A {@code BigInteger} representing the underlying value of the {@code IntegerNum}.
+    /**
+     * Creates an IntegerNum instance using the value passed in.
+     * @param value A {@code BigDecimal} representing underlyng value.
      */
     public IntegerNum(BigInteger value) {
-        this(value, BigInteger.valueOf(Integer.MIN_VALUE), BigInteger.valueOf(Integer.MAX_VALUE));
+        super(new BigDecimal(value));  // Enforces type consistency within Number<T>
+        this.value = value;
     }
 
     /**
-     * Constructor using input value and specifying the allowed range for this IntegerNum.
-     * @param value A {@code BigDecimal} representing underlyng value. Must fall in between the specified range.
-     * @param minValue A {@code BigInteger} determining the smallest allowable value
-     * @param maxValue A {@code BigInteger} determining the largest allowable value
+     * Creates an IntegerNumConverter instance using specific language rules.
+     * @param rules Set of specific language rules for number conversion
+     * @return Instance of IntegerNumConverter
      */
-    public IntegerNum(BigInteger value, BigInteger minValue, BigInteger maxValue) {
-        super(new BigDecimal(value));  // Enforces type consistency within Number<T>
-        if (minValue != null && maxValue != null && (value.compareTo(minValue) < 0 || value.compareTo(maxValue) > 0)) {
-            throw new IllegalArgumentException("Number out of range! Allowed range: " + minValue + " to " + maxValue);
-        }
-        this.value = value;
-        this.minValue = minValue != null ? minValue : BigInteger.valueOf(Integer.MIN_VALUE);
-        this.maxValue = maxValue != null ? maxValue : BigInteger.valueOf(Integer.MAX_VALUE);
+    @Override
+    public LocalizedNumberConverter<IntegerNum> getConverter(LanguageRules rules) {
+        return new IntegerNumConverter(rules);
     }
-
     /**
      * Determines sign of IntegerNum.
      * @return true if underlying value &lt; 0, and false otherwise.

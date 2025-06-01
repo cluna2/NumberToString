@@ -26,12 +26,13 @@ public class LanguageRules {
     /** Map of ints to numerals specific to each langauge.
      *  Typically these numerals are small (&le; 1000). 
      * (e.g. in English, 90 is "ninety")
+     * @return Numerals map
      */
     @Getter
     private final TreeMap<Integer, String> numerals;
 
     /** Array of large units specific to each language (e.g. English - ["thousands", "millions", "billions"]) 
-     * @return string array of large units
+     * @return String array of large units
      */
     @Getter
     private final String[] largeUnits;
@@ -58,9 +59,11 @@ public class LanguageRules {
 
 
     /** 
-     * Returns language-specific word for a number if it exists in the numerals map.
+     * Retrieves language-specific word for a number if it exists in the numerals map.
+     * 
      * For non-positional number systems, custom rules are applied instead.
      * @param num number to get word for
+     * @return word representation as string if successful, and empty string otherwise
      */
     public String getWord(int num) {
         if (customNumeralLogic != null) {

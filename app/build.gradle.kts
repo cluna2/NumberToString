@@ -11,6 +11,7 @@ plugins {
     
     // Lombok
     id("io.freefair.lombok") version "8.13.1"
+    jacoco
 }
 
 repositories {
@@ -21,6 +22,12 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
+
+    // Mockito Core (Java)
+    testImplementation("org.mockito:mockito-core:5.6.0")
+
+    // Mockito JUnit 5 extension
+    testImplementation("org.mockito:mockito-junit-jupiter:5.6.0")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
@@ -43,6 +50,13 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+    }
+    // Allow mockito to load java agents dynamically and suppress warnings
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
+    jvmArgs("-Xshare:off") 
+
 }
 
 tasks.withType<JavaCompile> {
