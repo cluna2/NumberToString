@@ -16,7 +16,7 @@ import numbertostring.logger.GlobalLogger;
  * 
  * For numeral systems that do not follow predictable grouping patterns or do 
  * not have a strict base structure (e.g. Roman numerals, Tally marks, etc.), use the {@code customNumeralLogic} field
- * to implement rules.
+ * to implement conversion rules.
  * 
  * 
  */
@@ -25,8 +25,9 @@ import numbertostring.logger.GlobalLogger;
 
 public class LanguageRules {
 
-    /** Map of ints to numerals specific to each langauge.
-     *  Typically these numerals are small (&le; 1000). 
+    /** TreeMap of ints to numerals specific to each langauge.
+     * These numerals are typically smaller than {@code grouping}.
+     * The keys are guranteed to be sorted.
      * (e.g. in English, 90 is "ninety")
      * @return Numerals map
      */
@@ -53,14 +54,13 @@ public class LanguageRules {
     /** Flag set for certain languages that require the word for "One" to 
      * be prefixed to a base unit. 
      * True in English (that is, 100 -> "One Hundred" instead of "Hundred")
-     * @return Explicit one flag.
+     * @return Must add "One" flag.
      */
     @Getter    
     private final boolean needsExplicitOne;
 
 
-    /** String representing word for negative. If the number system does not allow negative numbers, leave as null and 
-     * use {@link customNumeralLogic} instead.
+    /** String representing word for negative. If the number system does not allow negative numbers, leave as null. 
      * @return String word for negative.
     */
     @Getter
@@ -69,8 +69,8 @@ public class LanguageRules {
     /**
      * Function for custom numeral logic to return word representation of a number.
      * Use this field if your language's numeral system has complex rules or has specific
-     * excpetions (e.g. French numbers from 70-99).
-     * The function should return null if the word cannot be found or if no special rule applies.
+     * excpetions (e.g. French numbers from 70-99, Tally marks, Roman numerals, etc.).
+     * The function should return {@code null} if the word cannot be found or if no special rule applies.
      * Otherwise, pass in {@code null}.
      */
     @Getter
@@ -92,6 +92,8 @@ public class LanguageRules {
                     String.format("Non-null output of rules function.", customResult));
                 return customResult;
             }
+            GlobalLogger.LOGGER.debug(String.format("Word not found in rules function."));
+            return null;
         }
         return numeralsMap.getOrDefault(num, "");
     }

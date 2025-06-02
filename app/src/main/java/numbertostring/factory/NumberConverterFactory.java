@@ -65,7 +65,11 @@ public class NumberConverterFactory {
             throw new IllegalArgumentException("Locale cannot be null.");
         }
         LanguageRules languageRules = new DefaultLanguageRulesProvider().getLanguageRules(locale);
+        GlobalLogger.LOGGER.debug(
+                String.format("Language rules extracted."));
         if (languageRules == null) {
+            GlobalLogger.LOGGER.error(
+                String.format("Language rules are null. Language is not supported."));
             throw new UnsupportedLanguageException("Language not yet supported.");
         }
         return languageRules;

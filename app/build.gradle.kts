@@ -70,12 +70,14 @@ tasks {
     javadoc {
         options {
             (this as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
+            (this as CoreJavadocOptions).addStringOption("doctitle", "NumberToString API")
         }
     }
 }
 tasks.javadoc {
     dependsOn(tasks.named("build"))
     dependsOn(tasks.named("delombok"))
+
     source = fileTree("$buildDir/generated/sources/delombok").matching {
         include("**/*.java")
     }
@@ -96,7 +98,8 @@ tasks.jacocoTestReport {
                 fileTree(it) {
                     exclude(
                         "**/logger/**",
-                        "**/exception/**"
+                        "**/exception/**",
+                        "App.java/**"
                     )
                 }
             }

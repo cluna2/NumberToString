@@ -8,8 +8,8 @@ import numbertostring.pojo.Number;
 
 /**
  * Abstract class to convert numbers to word form using locale.
- * Subclasses are based on the type of number to convert.
- * Uses the {@code NumericalLanguageConstants} interface to retrieve constants
+ * Subclasses are based on the type of Mumber to convert.
+ * Uses the {@code LanguageProvider} interface to retrieve language rules.
  * 
  * @param <T> Type of the Number to convert
  */
@@ -24,7 +24,7 @@ public abstract class LocalizedNumberConverter<T extends Number<T>> {
 
     /**
      * Converts a Number to words.
-     * Implementing classes must handle conversion using the LangauageRules field.
+     * Implementing classes must handle conversion using the rules field.
      * @param number Instance of a Number of type T
      * @return Word representation in language of inherited locale.
      */

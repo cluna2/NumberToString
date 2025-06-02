@@ -10,7 +10,8 @@ import numbertostring.language.LanguageRules;
 @RequiredArgsConstructor
 /**
  * Generic class to represent a number across different numeric systems.
- * Uses BigDecimals to represent the underlying value in base 10.
+ * Uses BigDecimals to represent the underlying value in base 10 to provide flexiblility
+ * for subclass implementations.
  * 
  * @param <T> The type of Number. 
  */

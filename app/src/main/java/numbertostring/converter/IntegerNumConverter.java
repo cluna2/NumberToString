@@ -14,7 +14,7 @@ import numbertostring.pojo.Number;
 
 /**
  * This class is a subclass of a LocalizedNumberConverter.
- * Each {@code IntegerNumConverter} is tied to a specified locale and 
+ * Each {@code IntegerNumConverter} is tied to a specified locale.
  * 
  * 
  * This class provides a method to convert integer values to the word form 
@@ -23,13 +23,10 @@ import numbertostring.pojo.Number;
  */
 public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
 
-    /** Int gathered from set of language rules. Most languages group by 1000s. */
-    private final int groupingInteger;
 
     /** Default constructor assumes English for conversion */
     public IntegerNumConverter() {
         super(new DefaultLanguageRulesProvider().getLanguageRules(Locale.ENGLISH));
-        this.groupingInteger = 1000;
     }
 
     /**
@@ -38,7 +35,6 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
      */
     public IntegerNumConverter(LanguageRules rules) {
         super(rules); 
-        this.groupingInteger = rules.getGrouping();
     }
 
     /**
@@ -49,10 +45,6 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
      */
     @Override
     public String convertToWords(Number<IntegerNum> number) {
-        if (!(number instanceof IntegerNum)) {
-            throw new IllegalArgumentException("Unsupported number type.");
-        }
-
         IntegerNum integerNum = (IntegerNum) number;
         GlobalLogger.LOGGER.info(
             String.format("Beginning conversion for %d.", integerNum.getValue())); 
@@ -64,13 +56,13 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
     }
 
     /**
-     * Mmethod to handle zero and negative number cases before passing off
+     * Method to handle zero and negative number cases before passing off
      * core conversion logic to helper methods.
-     * @param num IntegerNum 
-     * @return
+     * @param num Number to convert.
+     * @return Word form string.
      */
     private String convertNumberToWords(IntegerNum num) {
-        if (num.equals(IntegerNum.ZERO)) {
+        if (num.getValue().equals(BigInteger.ZERO)){
             return rules.getWord(0);
         }
 
@@ -93,21 +85,22 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
      * Processes positive numbers recursively by breaking them into chunks. Chunks are defined 
      * by the language's ways of grouping numbers.
      * (e.g. Japanese using 4-digit groupings (10,000) vs English (1,000))
-     * @param num number to convert
+     * @param num BigInteger number to convert.
      * @return Converted number.
      */
     private String processNumberByChunk(BigInteger current) {
         StringBuilder result = new StringBuilder();
+        Integer groupingInteger = rules.getGrouping();
 
-        // Reduce the number % groupingNumber to process by chunks.
+        // Reduce the number mod(groupingNumber) to process by chunks.
         while(current.compareTo(BigInteger.ZERO) > 0) {
             BigInteger chunk = current;
             BigInteger largestUnit = BigInteger.ONE;
 
-            // Reduce chunk until it is smaller than the grouping number before processing.
-            while (chunk.compareTo(BigInteger.valueOf(this.groupingInteger)) >= 0) {
-                chunk = chunk.divide(BigInteger.valueOf(this.groupingInteger));
-                largestUnit = largestUnit.multiply(BigInteger.valueOf(this.groupingInteger));
+            // Reduce a chunk until it is smaller than the grouping number before processing.
+            while (chunk.compareTo(BigInteger.valueOf(groupingInteger)) >= 0) {
+                chunk = chunk.divide(BigInteger.valueOf(groupingInteger));
+                largestUnit = largestUnit.multiply(BigInteger.valueOf(groupingInteger));
             }
 
             // Apply appropriate large unit if applicable after extracting numerals.
@@ -149,11 +142,12 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
         while (num > 0) {
 
             Map.Entry<Integer, String> entry = rules.getClosestNumeral(num);
-            // Largest number that divides the input and has associated numeral.
+            // Largest number that divides the input and has an associated pre-defined numeral.
             int biggestNum = entry.getKey();
+            // The TreeMap ensures the largest possible numeral is applied first.
             String numeral = entry.getValue();
-            int factor = num / biggestNum;
 
+            int factor = num / biggestNum;
             // Case: The number has a "One" that might need to be affixed
             if (factor == 1) {
 

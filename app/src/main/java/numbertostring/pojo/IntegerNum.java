@@ -23,8 +23,6 @@ import numbertostring.language.LanguageRules;
 @Builder
 public class IntegerNum extends Number<IntegerNum>{
 
-    /** Zero constant for this class. */
-    public static final IntegerNum ZERO = new IntegerNum(BigInteger.ZERO);
 
     /** The integer value stored using BigInteger.
      * @return value as BigInteger

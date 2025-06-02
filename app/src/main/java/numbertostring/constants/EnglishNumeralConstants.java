@@ -30,21 +30,21 @@ public class EnglishNumeralConstants {
         Map.entry(90, "Ninety"), Map.entry(100, "Hundred")
     ));
 
-    /** Numerals in English are grouped by thousands. */
+    /** Determines how English numbers are grouped (i.e. by 1000s) */
     public static final Integer GROUPING = 1000;
 
-    /** One must be prefixed to base units.  */
+    /** The "One" word must be prefixed to base units.  */
     public static final Boolean EXPLICIT_ONE = true;
 
-    /** Set of units that may require a One prepended. In English, this is just One Hundred. */
+    /** Set of units that may require a One prepended. In English, this is just the unit "Hundred". */
     public static final Set<Integer> BASE_UNITS = Set.of(100);
 
     /** Constant for minus word in English. */
     public static final String NEGATIVE_WORD = "Negative";
 
 
-    /** English words for large unit names.
-     * Larger units are left out for now as they exceed range of representability with 32-bit integers,
+    /** Map of large units to associated English names.
+     * Units are defined up to a Trillion
      * but can easily be extended by filling out the map with more names.
      * @see numbertostring.pojo.IntegerNum
     */

@@ -34,7 +34,7 @@ public class App {
             NumberToWordsResponse response = api.convertNumberToWords(req);
             System.out.println(response.getWords());
  
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
