@@ -66,10 +66,40 @@ tasks.withType<JavaCompile> {
     options.compilerArgs.addAll(listOf("-Xlint:unchecked"))
 }
 
+tasks {
+    javadoc {
+        options {
+            (this as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
+        }
+    }
+}
 tasks.javadoc {
-    source = fileTree("app/build/generated/sources/delombok/java/main/numbertostring")
+    dependsOn(tasks.named("build"))
+    dependsOn(tasks.named("delombok"))
+    source = fileTree("$buildDir/generated/sources/delombok").matching {
+        include("**/*.java")
+    }
 
-    // Exclude Lombok generated Builder code from Lombok Javadocs.
-    exclude("numbertostring/pojo/IntegerNum\$Builder")
-    exclude("numbertostring/pojo/Number\$Builder")
+    // println("Javadoc source files: ${source.files}") 
+
+    // Exclude Lombok generated Builder code from Javadocs.
+    exclude("java/main/numbertostring/logger/*.java")
+    exclude("java/main/numbertostring/App.java")
+
+}
+
+tasks.jacocoTestReport {
+    // Exclude specific files from coverage
+    classDirectories.setFrom(
+        files(
+            classDirectories.files.map {
+                fileTree(it) {
+                    exclude(
+                        "**/logger/**",
+                        "**/exception/**"
+                    )
+                }
+            }
+        )
+    )
 }

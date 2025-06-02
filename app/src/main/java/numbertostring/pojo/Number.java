@@ -2,14 +2,11 @@ package numbertostring.pojo;
 
 import java.math.BigDecimal;
 
-import org.checkerframework.checker.units.qual.C;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import numbertostring.converter.LocalizedNumberConverter;
 import numbertostring.language.LanguageRules;
 
 
-@SuperBuilder
 @RequiredArgsConstructor
 /**
  * Generic class to represent a number across different numeric systems.
@@ -28,12 +25,18 @@ public abstract class Number<T extends Number<T>> {
      */
     public abstract LocalizedNumberConverter<T> getConverter(LanguageRules rules);
 
-    /** Underlying value of number in base 10. Stored using BigDecimal.
-     * @param value the value of this number
-     * */
+    /** Underlying value of number in base 10. Stored using BigDecimal. */
     protected final BigDecimal value;
 
+    private final Class<T> type;
+    /**
+     * Retrieves the underlying number type.
+     * @return Type T of the Number.
+     */
+    public Class<T> getType() {
+        return type;
+    }
+
     
-    public abstract T getType();
 
 }

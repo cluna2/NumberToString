@@ -3,8 +3,8 @@ package numbertostring.pojo;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 import numbertostring.converter.IntegerNumConverter;
 import numbertostring.converter.LocalizedNumberConverter;
 import numbertostring.language.LanguageRules;
@@ -20,14 +20,13 @@ import numbertostring.language.LanguageRules;
  * arbitrarily large integers using {@code BigInteger}
  * 
  */
-@SuperBuilder
+@Builder
 public class IntegerNum extends Number<IntegerNum>{
 
     /** Zero constant for this class. */
     public static final IntegerNum ZERO = new IntegerNum(BigInteger.ZERO);
 
     /** The integer value stored using BigInteger.
-     * @param value to store
      * @return value as BigInteger
      */
     @Getter
@@ -35,16 +34,21 @@ public class IntegerNum extends Number<IntegerNum>{
 
     /**
      * Creates an IntegerNum instance using the value passed in.
-     * @param value A {@code BigDecimal} representing underlyng value.
+     * @param value A {@code BigInteger} representing underlyng value.
      */
     public IntegerNum(BigInteger value) {
-        super(new BigDecimal(value));  // Enforces type consistency within Number<T>
+        super(new BigDecimal(value), IntegerNum.class);  // Enforces type consistency within Number<T>
         this.value = value;
     }
 
-    @Override
-    public IntegerNum getType() {
-        return this;
+    /** Creates an IntegerNum instance using a BigDecimal as argument.
+     * Note that precision loss may occur due to how Java makes the conversion
+     * from BigDecimal to BigInteger.
+     * @param value A {@code BigDecimal} representing underlying value.
+     */
+    public IntegerNum(BigDecimal value) {
+        super(value, IntegerNum.class);
+        this.value = value.toBigInteger();
     }
     
     /**

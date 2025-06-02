@@ -1,7 +1,8 @@
 package numbertostring.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import numbertostring.converter.LocalizedNumberConverter;
 import numbertostring.dto.NumberToWordsRequest;
 import numbertostring.dto.NumberToWordsResponse;
 import numbertostring.exception.NumberConversionException;
+import numbertostring.exception.UnsupportedLanguageException;
 import numbertostring.factory.NumberConverterFactory;
 import numbertostring.pojo.IntegerNum;
 
@@ -55,10 +57,10 @@ public class NumberToWordsServiceTest {
     }
 
     @Test
-    void testConvertNumberToWordsSuccess() {
+    void testConvertNumberToWordsSuccess() throws ReflectiveOperationException {
 
-        when(factory.getConverterForType(any(IntegerNum.class), eq(Locale.ENGLISH)))
-            .thenReturn(mockConverter);
+        when(factory.getConverterForType(eq(IntegerNum.class), eq(Locale.ENGLISH)))
+            .thenAnswer(invocation -> mockConverter);
         when(mockConverter.convertToWords(any(IntegerNum.class)))
             .thenReturn(expectedNumString);
 
@@ -66,27 +68,30 @@ public class NumberToWordsServiceTest {
         assertEquals(expectedNumString, res.getWords());
         assertEquals(NumberToWordsResponse.Status.SUCCESS, res.getStatus());
 
-        verify(factory).getConverterForType(any(IntegerNum.class), eq(Locale.ENGLISH));
+        verify(factory).getConverterForType(any(), eq(Locale.ENGLISH));
         verify(mockConverter).convertToWords(num);
 
     }
 
     @Test
-    void whenConvertFails_thenResponseHasException() {
-        when(factory.getConverterForType(any(IntegerNum.class), eq(Locale.ENGLISH)))
-            .thenReturn(mockConverter);
+    void whenConvertFails_thenResponseHasException() throws ReflectiveOperationException {
+        when(factory.getConverterForType(eq(IntegerNum.class), eq(Locale.ENGLISH)))
+            .thenAnswer(invocation -> mockConverter);
         when(mockConverter.convertToWords(any(IntegerNum.class)))
-            .thenThrow(new IllegalArgumentException("Bad argument"));
+            .thenThrow(new UnsupportedLanguageException("Language unsupported."));
 
         res = api.convertNumberToWords(req);
         assertEquals(FAILURE_STRING, res.getWords());
         assertEquals(NumberConversionException.class, api.convertNumberToWords(req).getException().getClass());
     }
-    
+
     /** Runs entire service. */
     @Test
     void testConvertNumberToWordsWithoutMocks() {
         api = NumberToWordsService.create();
-        // assertEquals(expectedNumString, api.convertNumberToWords(req));
+        NumberToWordsResponse res = api.convertNumberToWords(req);
+        assertNull(res.getException());
+        assertEquals(NumberToWordsResponse.Status.SUCCESS, res.getStatus());
+        assertTrue(expectedNumString.equals(res.getWords()));
     }
 }

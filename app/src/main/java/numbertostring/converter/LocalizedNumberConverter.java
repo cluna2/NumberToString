@@ -18,18 +18,17 @@ import numbertostring.pojo.Number;
 public abstract class LocalizedNumberConverter<T extends Number<T>> {
 
     /** Class defining rules for representing numbers for a given language.
-     * @return constants type for language-specific constants
+     * @return Language-specific rules defining conversion logic.
     */
     protected final LanguageRules rules;
 
     /**
      * Converts a Number to words.
      * Implementing classes must handle conversion using the LangauageRules field.
-     * @param number Instance of Number
-     * @param <T> Type of the number
+     * @param number Instance of a Number of type T
      * @return Word representation in language of inherited locale.
      */
-    public abstract <T extends Number<T>> String convertToWords(T number);
+    public abstract String convertToWords(Number<T> number);
 
 
 }

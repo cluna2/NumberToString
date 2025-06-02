@@ -1,6 +1,8 @@
 package numbertostring.constants;
 
+import java.math.BigInteger;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -29,16 +31,26 @@ public class EnglishNumeralConstants {
     ));
 
     /** Numerals in English are grouped by thousands. */
-    public static final boolean USES_THOUSANDS_GROUPING = true;
+    public static final Integer GROUPING = 1000;
+
+    /** One must be prefixed to base units.  */
+    public static final Boolean EXPLICIT_ONE = true;
+
+    /** Set of units that may require a One prepended. In English, this is just One Hundred. */
+    public static final Set<Integer> BASE_UNITS = Set.of(100);
+
     /** Constant for minus word in English. */
     public static final String NEGATIVE_WORD = "Negative";
 
-    /** Word form for special case of Integer.MIN_VALUE */
-    public static final String MIN_INTEGER = "Negative Two Billion One Hundred Forty Seven Million Four Hundred Eighty Three Thousand Six Hundred Forty Eight";
 
-    /** English words for large unit names (thousand, million, billion). 
-     * Larger units are left out for now as they exceed range of representability with 32-bit integers.
+    /** English words for large unit names.
+     * Larger units are left out for now as they exceed range of representability with 32-bit integers,
+     * but can easily be extended by filling out the map with more names.
      * @see numbertostring.pojo.IntegerNum
     */
-    public static final String[] LARGE_UNITS = {"", "Thousand", "Million", "Billion"}; 
+    public static final TreeMap<BigInteger, String> LARGE_UNITS = new TreeMap<BigInteger, String>(Map.ofEntries(
+        Map.entry(new BigInteger("0"), ""), Map.entry(new BigInteger("1000"), "Thousand"),
+        Map.entry(new BigInteger("1000000"), "Million"), Map.entry(new BigInteger("1000000000"), "Billion"),
+        Map.entry(new BigInteger("1000000000000"), "Trillion")
+    ));
 }

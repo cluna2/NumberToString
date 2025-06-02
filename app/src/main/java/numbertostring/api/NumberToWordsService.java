@@ -4,7 +4,9 @@ import numbertostring.converter.LocalizedNumberConverter;
 import numbertostring.dto.NumberToWordsRequest;
 import numbertostring.dto.NumberToWordsResponse;
 import numbertostring.exception.NumberConversionException;
+import numbertostring.exception.UnsupportedLanguageException;
 import numbertostring.factory.NumberConverterFactory;
+import numbertostring.logger.GlobalLogger;
 import numbertostring.pojo.Number;
 
 
@@ -21,10 +23,6 @@ public class NumberToWordsService {
     /** Default factory that the service uses to create a converter. */
     private static final NumberConverterFactory DEFAULT_FACTORY = new NumberConverterFactory();
 
-    /** Converter object that is responsible for performing the acutal conversion.
-     * It is parametrized by the type of Number a user passes in.
-     */
-    private LocalizedNumberConverter<? extends Number<?>> converter;
 
     /**
      * A factory responsible for creating a converter. 
@@ -44,6 +42,7 @@ public class NumberToWordsService {
      * @param converterFactory factory 
     */
     private NumberToWordsService(NumberConverterFactory converterFactory) { 
+        GlobalLogger.LOGGER.info("Creating service object.");
         this.converterFactory = converterFactory;
     }
     
@@ -60,9 +59,9 @@ public class NumberToWordsService {
     /**
      * Converts any Number type to English word form string representation.
      * Use {@link convertNumberToWordsWithLocale} to specify locale.
-     * @param number Instance of Number
+     * @param req Request object with number parameter
      * @param <T> Type of number
-     * @return Word representation in English by default.
+     * @return Response object with converted string, status code, and exceptions if any
      */
     public <T extends Number<T>> NumberToWordsResponse convertNumberToWords(NumberToWordsRequest<T> req) {
         return convertNumberToWordsWithLocale(req);
@@ -72,27 +71,38 @@ public class NumberToWordsService {
      * Converts any Number type to word form of specified locale.
      * Failure to convert will result in an empty string.
      * 
-     * @param number Instance of Number
-     * @param locale Locale for language conversion
+     * @param req Request object with number parameter
      * @param <T> Type of number
-     * @return Word representation in the given language if successful
+     * @return Response object with converted string, status code, and exceptions if any
      */
     public <T extends Number<T>> NumberToWordsResponse convertNumberToWordsWithLocale(NumberToWordsRequest<T> req) {
         NumberToWordsResponse res;
         try {
-            this.converter = converterFactory.getConverterForType(req.getNumber().getType(), req.getLocale());
+            LocalizedNumberConverter<T> converter = converterFactory.getConverterForType(req.getNumber().getType(), req.getLocale());            
+            GlobalLogger.LOGGER.debug(
+                String.format("Converter of type %s successfully created.", req.getNumber().getType()));
+
+
             String words =  converter.convertToWords(req.getNumber());
+
+            GlobalLogger.LOGGER.debug(
+                String.format("Conversion complete. Creating response."));
             res = NumberToWordsResponse.builder()
                 .words(words)
                 .status(NumberToWordsResponse.Status.SUCCESS)
                 .exception(null)
                 .build();
-        } catch (UnsupportedOperationException | IllegalArgumentException e ) {
+            GlobalLogger.LOGGER.info(
+                String.format("Response object created. Response is: %s", res.toString()));
+        } catch (ReflectiveOperationException | UnsupportedLanguageException | IllegalArgumentException e ) {
+            GlobalLogger.LOGGER.warn("Conversion failed. Creating response");
             res = NumberToWordsResponse.builder()
                 .words("")
                 .status(NumberToWordsResponse.Status.FAILURE)
                 .exception(new NumberConversionException(e.getMessage()))
                 .build();
+            GlobalLogger.LOGGER.warn(
+                String.format("Response object created. Response is: %s", res.toString()));
         }
         return res;
     }

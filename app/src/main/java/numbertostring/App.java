@@ -24,7 +24,7 @@ public class App {
      */
     public static void main(String[] args) {
         try {
-            BigInteger value = BigInteger.valueOf(21);
+            BigInteger value = BigInteger.valueOf(Integer.MIN_VALUE);
             IntegerNum num = new IntegerNum(value);
             NumberToWordsService api = NumberToWordsService.create();
             NumberToWordsRequest<IntegerNum> req = NumberToWordsRequest.<IntegerNum>builder()
