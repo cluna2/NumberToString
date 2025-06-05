@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import lombok.RequiredArgsConstructor;
 import numbertostring.converter.LocalizedNumberConverter;
-import numbertostring.language.LanguageRules;
+import numbertostring.rules.LanguageRules;
 
 
 @RequiredArgsConstructor

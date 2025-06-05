@@ -2,10 +2,10 @@ package numbertostring.factory;
 
 import numbertostring.converter.LocalizedNumberConverter;
 import numbertostring.exception.UnsupportedLanguageException;
-import numbertostring.language.DefaultLanguageRulesProvider;
-import numbertostring.language.LanguageRules;
 import numbertostring.logger.GlobalLogger;
 import numbertostring.pojo.Number;
+import numbertostring.rules.DefaultLanguageRulesProvider;
+import numbertostring.rules.LanguageRules;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;

@@ -1,4 +1,4 @@
-package numbertostring.language;
+package numbertostring.rules;
 
 import java.util.Locale;
 

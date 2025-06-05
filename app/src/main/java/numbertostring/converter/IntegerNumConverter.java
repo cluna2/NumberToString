@@ -2,14 +2,12 @@ package numbertostring.converter;
 
 import java.math.BigInteger;
 import java.util.Locale;
-import java.util.Map;
-import java.util.function.Function;
 
-import numbertostring.language.LanguageRules;
 import numbertostring.logger.GlobalLogger;
-import numbertostring.language.DefaultLanguageRulesProvider;
 import numbertostring.pojo.IntegerNum;
 import numbertostring.pojo.Number;
+import numbertostring.rules.DefaultLanguageRulesProvider;
+import numbertostring.rules.LanguageRules;
 
 
 /**
@@ -46,7 +44,7 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
     @Override
     public String convertToWords(Number<IntegerNum> number) {
         IntegerNum integerNum = (IntegerNum) number;
-        GlobalLogger.LOGGER.info(
+        GlobalLogger.LOGGER.debug(
             String.format("Beginning conversion for %d.", integerNum.getValue())); 
         String result = convertNumberToWords(integerNum);
         GlobalLogger.LOGGER.debug(
@@ -63,7 +61,7 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
      */
     private String convertNumberToWords(IntegerNum num) {
         if (num.getValue().equals(BigInteger.ZERO)){
-            return rules.getWord(0);
+            return rules.getNumeralsMap().get(0);
         }
 
         boolean isNegative = num.isNegative();
@@ -76,7 +74,7 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
 
         output.insert(0, positiveString);
         if (isNegative) {
-            output.insert(0, " " + rules.getNegativeWord() + " ");   
+            output.insert(0, rules.getNegativeWord() + " ");   
         }
         return output.toString().trim();
     }
@@ -90,25 +88,29 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
      */
     private String processNumberByChunk(BigInteger current) {
         StringBuilder result = new StringBuilder();
-        Integer groupingInteger = rules.getGrouping();
 
         // Reduce the number mod(groupingNumber) to process by chunks.
         while(current.compareTo(BigInteger.ZERO) > 0) {
+
+            // The grouping number may change dynamically depending on a lanugage's scale.
+            BigInteger groupingInteger = rules.getGrouping(current);
             BigInteger chunk = current;
             BigInteger largestUnit = BigInteger.ONE;
 
             // Reduce a chunk until it is smaller than the grouping number before processing.
-            while (chunk.compareTo(BigInteger.valueOf(groupingInteger)) >= 0) {
-                chunk = chunk.divide(BigInteger.valueOf(groupingInteger));
-                largestUnit = largestUnit.multiply(BigInteger.valueOf(groupingInteger));
+            while (chunk.compareTo(groupingInteger) >= 0) {
+                chunk = chunk.divide(groupingInteger);
+                largestUnit = largestUnit.multiply(groupingInteger);
             }
 
+            String chunkString = rules.applyLanguageRulesForSmallNumbers(chunk.intValue());
+
             // Apply appropriate large unit if applicable after extracting numerals.
-            if  (largestUnit.compareTo(BigInteger.ONE) > 0 && rules.getLargeUnits().containsKey(largestUnit)) {
-                result.append(" " + processSmallNumbers(chunk.intValue()) + " ");
-                result.append(rules.getLargeUnits().get(largestUnit));
+            if (largestUnit.compareTo(BigInteger.ONE) > 0 && rules.getLargeUnits().containsKey(largestUnit)) {
+                String modifiedChunkStringWithUnits = rules.applyLanguageRulesForLargeUnits(chunkString, largestUnit); 
+                result.append(modifiedChunkStringWithUnits).append(" ");
             } else {
-                result.append(" " + processSmallNumbers(current.intValue()));
+                result.append(chunkString).append(" ");
             }
             current = current.mod(largestUnit);
         }
@@ -116,60 +118,4 @@ public class IntegerNumConverter extends LocalizedNumberConverter<IntegerNum>{
     }
 
     
-    /**
-     * Helepr method to match small numbers to their word representation.
-     * Uses custom function to return word string for special cases.
-     * (e.g. French 70 {@literal ->} Soixante-dix ("Sixty-ten")).
-     * 
-     * If no special rules are needed, handles conversion of numbers 
-     * that are smaller than the {@code groupingInteger}.
-     * @param num Number smaller than {@code groupingInteger}
-     * @return String form of that number.
-     */
-    private String processSmallNumbers(int num) {
-
-        // Check if the language has special numeral rules
-        // and if it does, if it applies to this number.
-        Function<Integer, String> func;
-        if ((func = rules.getCustomNumeralLogic()) != null) {
-            if (func.apply(num) != null) {
-                return func.apply(num);
-            }
-        }
-
-        StringBuilder result = new StringBuilder();
-
-        while (num > 0) {
-
-            Map.Entry<Integer, String> entry = rules.getClosestNumeral(num);
-            // Largest number that divides the input and has an associated pre-defined numeral.
-            int biggestNum = entry.getKey();
-            // The TreeMap ensures the largest possible numeral is applied first.
-            String numeral = entry.getValue();
-
-            int factor = num / biggestNum;
-            // Case: The number has a "One" that might need to be affixed
-            if (factor == 1) {
-
-                // Additional check if an explicit "One" needs to be affixed to matching numeral
-                if (rules.requiresExplicitOne() && rules.isBaseUnit(biggestNum)) { 
-                    result = new StringBuilder(result.append(
-                        rules.getClosestNumeral(1).getValue() + " " + numeral)
-                        .toString().trim());
-                } else {
-                    // If the language doesn't require a "One", just append the numeral
-                    result = new StringBuilder(result.append(" " + numeral).toString().trim());
-                }
-            } 
-
-            if (factor > 1) {
-                result.append(rules.getWord(factor) + " ");
-                result.append(numeral);
-            }
-            num = num % biggestNum;
-        }
-
-        return result.toString().trim();
-    }
-
 }

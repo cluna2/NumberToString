@@ -3,8 +3,8 @@ package numbertostring.converter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import numbertostring.language.LanguageRules;
 import numbertostring.pojo.Number;
+import numbertostring.rules.LanguageRules;
 
 /**
  * Abstract class to convert numbers to word form using locale.

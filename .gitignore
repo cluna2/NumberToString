@@ -31,3 +31,4 @@ build
 .vscode
 app/bin
 app/build
+app/logs

@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import numbertostring.converter.IntegerNumConverter;
 import numbertostring.converter.LocalizedNumberConverter;
-import numbertostring.language.LanguageRules;
+import numbertostring.rules.LanguageRules;
 
 
 
