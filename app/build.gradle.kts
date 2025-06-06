@@ -45,10 +45,6 @@ java {
     }
 }
 
-application {
-    // Define the main class for the application.
-    mainClass = "numbertostring.App"
-}
 
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
@@ -69,7 +65,7 @@ tasks.withType<JavaCompile> {
 tasks {
     javadoc {
         options {
-            (this as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
+            // (this as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
             (this as CoreJavadocOptions).addStringOption("doctitle", "NumberToString API")
         }
     }

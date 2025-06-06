@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,13 +18,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import numbertostring.converter.LocalizedNumberConverter;
-import numbertostring.dto.NumberToWordsRequest;
-import numbertostring.dto.NumberToWordsResponse;
-import numbertostring.exception.NumberConversionException;
-import numbertostring.exception.UnsupportedLanguageException;
-import numbertostring.factory.NumberConverterFactory;
-import numbertostring.pojo.IntegerNum;
+import numbertostring.api.dto.NumberToWordsRequest;
+import numbertostring.api.dto.NumberToWordsResponse;
+import numbertostring.api.exception.NumberConversionException;
+import numbertostring.core.conversion.LocalizedNumberConverter;
+import numbertostring.core.factory.NumberConverterFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class NumberToWordsServiceTest {
@@ -32,14 +30,13 @@ public class NumberToWordsServiceTest {
 
     private static final String FAILURE_STRING = "";
     private static final String expectedNumString = "One Thousand";
-    private static final BigInteger value = BigInteger.valueOf(1000);;
+    private static final BigDecimal value = BigDecimal.valueOf(1000);;
 
-    private IntegerNum num;
-    private NumberToWordsRequest<IntegerNum> req;
+    private NumberToWordsRequest req;
     private NumberToWordsResponse res;
     
     @Mock
-    private LocalizedNumberConverter<IntegerNum> mockConverter;
+    private LocalizedNumberConverter mockConverter;
     
     @Mock
     private NumberConverterFactory factory;
@@ -49,49 +46,43 @@ public class NumberToWordsServiceTest {
 
     @BeforeEach
     void setUp() {
-        num = new IntegerNum(value);
-        req = NumberToWordsRequest.<IntegerNum>builder()
-            .number(num)
+        req = NumberToWordsRequest.builder()
+            .numberValue(value)
             .build();
-        api = NumberToWordsService.create(factory);
     }
 
-    @Test
-    void testConvertNumberToWordsSuccess() throws ReflectiveOperationException {
 
-        when(factory.getConverterForType(eq(IntegerNum.class), eq(Locale.ENGLISH)))
-            .thenAnswer(invocation -> mockConverter);
-        when(mockConverter.convertToWords(any(IntegerNum.class)))
+    @Test
+    void testConvertNumberToWordsSuccess() {
+
+        when(factory.convertNumberToWords(eq(value), eq(Locale.ENGLISH)))
             .thenReturn(expectedNumString);
 
         res = api.convertNumberToWords(req);
-        assertEquals(expectedNumString, res.getWords());
+        assertEquals(expectedNumString, res.getConvertedData().getConvertedText());
         assertEquals(NumberToWordsResponse.Status.SUCCESS, res.getStatus());
 
-        verify(factory).getConverterForType(any(), eq(Locale.ENGLISH));
-        verify(mockConverter).convertToWords(num);
+        verify(factory).convertNumberToWords(any(), eq(Locale.ENGLISH));
 
     }
 
     @Test
-    void whenConvertFails_thenResponseHasException() throws ReflectiveOperationException {
-        when(factory.getConverterForType(eq(IntegerNum.class), eq(Locale.ENGLISH)))
-            .thenAnswer(invocation -> mockConverter);
-        when(mockConverter.convertToWords(any(IntegerNum.class)))
-            .thenThrow(new UnsupportedLanguageException("Language unsupported."));
+    void whenConvertFails_thenResponseHasException()  {
+        when(factory.convertNumberToWords(eq(value), eq(Locale.ENGLISH)))
+            .thenThrow(new NumberConversionException(FAILURE_STRING));
 
         res = api.convertNumberToWords(req);
-        assertEquals(FAILURE_STRING, res.getWords());
+        assertEquals(FAILURE_STRING, res.getConvertedData().getConvertedText());
         assertEquals(NumberConversionException.class, api.convertNumberToWords(req).getException().getClass());
     }
 
     /** Runs entire service. */
     @Test
     void testConvertNumberToWordsWithoutMocks() {
-        api = NumberToWordsService.create();
+        api = new NumberToWordsService();
         NumberToWordsResponse res = api.convertNumberToWords(req);
         assertNull(res.getException());
         assertEquals(NumberToWordsResponse.Status.SUCCESS, res.getStatus());
-        assertTrue(expectedNumString.equals(res.getWords()));
+        assertTrue(expectedNumString.equals(res.getConvertedData().getConvertedText()));
     }
 }

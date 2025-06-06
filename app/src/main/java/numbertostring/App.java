@@ -1,12 +1,11 @@
 package numbertostring;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.Locale;
 
 import numbertostring.api.NumberToWordsService;
-import numbertostring.dto.NumberToWordsRequest;
-import numbertostring.dto.NumberToWordsResponse;
-import numbertostring.pojo.IntegerNum;
+import numbertostring.api.dto.NumberToWordsRequest;
+import numbertostring.api.dto.NumberToWordsResponse;
 
 /**
  * Simple App to call conversion API. 
@@ -25,19 +24,15 @@ public class App {
      */
     public static void main(String[] args) {
         try {
-            BigInteger value = BigInteger.valueOf(Integer.MIN_VALUE);
-
-            // BigInteger value = BigInteger.valueOf(Integer.MIN_VALUE - 1_000_000_000);
-            // BigInteger value =new  BigInteger("100000");
-            IntegerNum num = new IntegerNum(value);
-            NumberToWordsService api = NumberToWordsService.create();
+            BigDecimal value = BigDecimal.valueOf(Integer.MIN_VALUE);
+            NumberToWordsService api = new NumberToWordsService();
             Locale locale = Locale.of("es", "ES");
-            NumberToWordsRequest<IntegerNum> req = NumberToWordsRequest.<IntegerNum>builder()
-                .number(num)
+            NumberToWordsRequest req = NumberToWordsRequest.builder()
+                .numberValue(value)
                 .locale(locale)
                 .build();
             NumberToWordsResponse response = api.convertNumberToWordsWithLocale(req);
-            System.out.println(response.getWords());
+            System.out.println(response.getConvertedData().getConvertedText());
  
         } catch (Exception e) {
             System.out.println(e);

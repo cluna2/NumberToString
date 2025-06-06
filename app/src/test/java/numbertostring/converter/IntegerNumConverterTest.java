@@ -10,10 +10,11 @@ import java.util.Locale;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import numbertostring.logger.GlobalLogger;
-import numbertostring.pojo.IntegerNum;
-import numbertostring.rules.DefaultLanguageRulesProvider;
-import numbertostring.rules.LanguageRules;
+import numbertostring.core.conversion.IntegerNumConverter;
+import numbertostring.core.language.rules.LanguageRules;
+import numbertostring.core.language.rules.LanguageRulesRegistry;
+import numbertostring.core.model.IntegerNum;
+import numbertostring.core.utils.logger.GlobalLogger;
 
 public class IntegerNumConverterTest {
     
@@ -23,7 +24,7 @@ public class IntegerNumConverterTest {
 
     @BeforeEach
     void setUp() {
-        rules = new DefaultLanguageRulesProvider().getLanguageRules(Locale.ENGLISH);
+        rules = LanguageRulesRegistry.getRules(Locale.ENGLISH);
         converter = new IntegerNumConverter(rules);
     }
 
@@ -69,7 +70,7 @@ public class IntegerNumConverterTest {
 
     @Test
     void testParsesLongMaxValue_SPANISH() {
-        rules = new DefaultLanguageRulesProvider().getLanguageRules(Locale.of("es", "ES"));
+        rules = LanguageRulesRegistry.getRules(Locale.of("es", "ES"));
         converter = new IntegerNumConverter(rules);
         String expectedString = "Nueve Trillones Doscientos Veintitres Mil "
                                + "Trescientos Setenta Y Dos Billones "
@@ -82,7 +83,7 @@ public class IntegerNumConverterTest {
 
     @Test
     void testParsesLongMinValue_SPANISH() {
-        rules = new DefaultLanguageRulesProvider().getLanguageRules(Locale.of("es", "ES"));
+        rules = LanguageRulesRegistry.getRules(Locale.of("es", "ES"));
         converter = new IntegerNumConverter(rules);
         String expectedString = "Menos Nueve Trillones Doscientos Veintitres Mil "
                                + "Trescientos Setenta Y Dos Billones "
@@ -104,7 +105,7 @@ public class IntegerNumConverterTest {
 
     @Test
     void testParsesIntMinValue_SPANISH() {
-        rules = new DefaultLanguageRulesProvider().getLanguageRules(Locale.of("es", "ES"));
+        rules = LanguageRulesRegistry.getRules(Locale.of("es", "ES"));
         converter = new IntegerNumConverter(rules);
         String expectedString = "Menos Dos Mil Ciento Cuarenta Y Siete Millones Cuatrocientos Ochenta Y Tres Mil Seiscientos Cuarenta Y Ocho";
         IntegerNum num = IntegerNum.builder().value(BigInteger.valueOf(Integer.MIN_VALUE)).build();
@@ -114,7 +115,7 @@ public class IntegerNumConverterTest {
 
     @Test
     void testParsesIntMaxValue_SPANISH() {
-        rules = new DefaultLanguageRulesProvider().getLanguageRules(Locale.of("es", "ES"));
+        rules = LanguageRulesRegistry.getRules(Locale.of("es", "ES"));
         converter = new IntegerNumConverter(rules);
         String expectedString = "Dos Mil Ciento Cuarenta Y Siete Millones Cuatrocientos Ochenta Y Tres Mil Seiscientos Cuarenta Y Siete";
         IntegerNum num = IntegerNum.builder().value(BigInteger.valueOf(Integer.MAX_VALUE)).build();
@@ -144,7 +145,8 @@ public class IntegerNumConverterTest {
 
     @Test
     void testParseSpanishLargeUnits() {
-        rules = new DefaultLanguageRulesProvider().getLanguageRules(Locale.of("es", "ES"));
+        new LanguageRulesRegistry();
+        rules = LanguageRulesRegistry.getRules(Locale.of("es", "ES"));
         converter = new IntegerNumConverter(rules);
         List<String> expectedStrings = new ArrayList<>(Arrays.asList(
             "Uno", 

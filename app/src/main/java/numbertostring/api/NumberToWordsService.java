@@ -1,14 +1,14 @@
 package numbertostring.api;
 
-import numbertostring.converter.LocalizedNumberConverter;
-import numbertostring.dto.NumberToWordsRequest;
-import numbertostring.dto.NumberToWordsResponse;
-import numbertostring.exception.NumberConversionException;
-import numbertostring.exception.UnsupportedLanguageException;
-import numbertostring.factory.NumberConverterFactory;
-import numbertostring.logger.GlobalLogger;
-import numbertostring.pojo.Number;
-
+import numbertostring.api.dto.ConvertedNumberDTO;
+import numbertostring.api.dto.NumberToWordsRequest;
+import numbertostring.api.dto.NumberToWordsResponse;
+import numbertostring.api.exception.NumberConversionException;
+import numbertostring.core.conversion.LocalizedNumberConverter;
+import numbertostring.core.factory.NumberConverterFactory;
+import numbertostring.core.factory.NumberConverterFactorySingleton;
+import numbertostring.core.model.Number;
+import numbertostring.core.utils.logger.GlobalLogger;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -20,29 +20,17 @@ import com.google.common.annotations.VisibleForTesting;
 public class NumberToWordsService {
 
 
-    /** Default factory that the service uses to create a converter. */
-    private static final NumberConverterFactory DEFAULT_FACTORY = new NumberConverterFactory();
-
-
     /**
      * A factory responsible for creating a converter. 
      */
     private final NumberConverterFactory converterFactory;
 
-
-    /** Static method to initialize the service.
-     * Users should use this method to create the Service.
-     * @return Service class to handle user requests.
-    */
-    public static NumberToWordsService create() {
-        return new NumberToWordsService(DEFAULT_FACTORY);
+    public NumberToWordsService() {
+        this.converterFactory = NumberConverterFactorySingleton.getInstance();
     }
 
-    /** Private constructor enforcing use of a converter factory. 
-     * @param converterFactory factory 
-    */
-    private NumberToWordsService(NumberConverterFactory converterFactory) { 
-        GlobalLogger.LOGGER.info("Creating service object.");
+    /** Constructor for unit testing (allows passing a mock factory) */
+    public NumberToWordsService(NumberConverterFactory converterFactory) {
         this.converterFactory = converterFactory;
     }
     
@@ -63,7 +51,7 @@ public class NumberToWordsService {
      * @param <T> Type of number
      * @return Response object with converted string, status code, and exceptions if any
      */
-    public <T extends Number<T>> NumberToWordsResponse convertNumberToWords(NumberToWordsRequest<T> req) {
+    public <T extends Number<T>> NumberToWordsResponse convertNumberToWords(NumberToWordsRequest req) {
         return convertNumberToWordsWithLocale(req);
     }
 
@@ -75,35 +63,34 @@ public class NumberToWordsService {
      * @param <T> Type of number
      * @return Response object with converted string, status code, and exceptions if any
      */
-    public <T extends Number<T>> NumberToWordsResponse convertNumberToWordsWithLocale(NumberToWordsRequest<T> req) {
+    public <T extends Number<T>> NumberToWordsResponse convertNumberToWordsWithLocale(NumberToWordsRequest req) {
         NumberToWordsResponse res;
         try {
-            LocalizedNumberConverter<T> converter = converterFactory.getConverterForType(req.getNumber().getType(), req.getLocale());            
-            GlobalLogger.LOGGER.debug(
-                String.format("Converter of type %s successfully created.", req.getNumber().getType()));
+            // Convert number to words using factory's method
+            String words = converterFactory.convertNumberToWords(req.getNumberValue(), req.getLocale());
 
+            // Create structured DTO for encapsulated conversion results
+            ConvertedNumberDTO convertedData = new ConvertedNumberDTO(req.getNumberValue(), words, req.getLocale().getLanguage());
 
-            String words =  converter.convertToWords(req.getNumber());
-
-            GlobalLogger.LOGGER.debug(
-                String.format("Conversion complete. Creating response."));
+            GlobalLogger.LOGGER.debug("Conversion complete. Creating response.");
             res = NumberToWordsResponse.builder()
-                .words(words)
+                .convertedData(convertedData)
                 .status(NumberToWordsResponse.Status.SUCCESS)
                 .exception(null)
                 .build();
-            GlobalLogger.LOGGER.info(
-                String.format("Response object created. Response is: %s", res.toString()));
-        } catch (ReflectiveOperationException | UnsupportedLanguageException | IllegalArgumentException e ) {
-            GlobalLogger.LOGGER.warn("Conversion failed. Creating response");
+        } catch (Exception e) {
+            // DTO with empty data for failures
+            ConvertedNumberDTO failedData = new ConvertedNumberDTO(req.getNumberValue(), "", req.getLocale().getLanguage());
+
             res = NumberToWordsResponse.builder()
-                .words("")
+                .convertedData(failedData)
                 .status(NumberToWordsResponse.Status.FAILURE)
                 .exception(new NumberConversionException(e.getMessage()))
                 .build();
-            GlobalLogger.LOGGER.warn(
-                String.format("Response object created. Response is: %s", res.toString()));
+            GlobalLogger.LOGGER.warn(String.format("Response object created. Response is: %s", res.toString()));
         }
         return res;
     }
+
+
 }

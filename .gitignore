@@ -32,3 +32,4 @@ build
 app/bin
 app/build
 app/logs
+logs/
