@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import numbertostring.core.conversion.IntegerNumConverter;
 import numbertostring.core.conversion.LocalizedNumberConverter;
-import numbertostring.core.language.rules.LanguageRules;
+import numbertostring.core.language.rules.LocalizedNumberRules;
 
 
 
@@ -55,7 +55,7 @@ public class IntegerNum extends Number<IntegerNum>{
      * @return Instance of IntegerNumConverter
      */
     @Override
-    public LocalizedNumberConverter getConverter(LanguageRules rules) {
+    public LocalizedNumberConverter getConverter(LocalizedNumberRules rules) {
         return new IntegerNumConverter(rules);
     }
     /**

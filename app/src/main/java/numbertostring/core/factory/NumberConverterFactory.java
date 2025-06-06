@@ -2,8 +2,8 @@ package numbertostring.core.factory;
 
 import numbertostring.api.exception.UnsupportedLanguageException;
 import numbertostring.core.conversion.LocalizedNumberConverter;
-import numbertostring.core.language.rules.LanguageRules;
-import numbertostring.core.language.rules.LanguageRulesRegistry;
+import numbertostring.core.language.LocalizedNumberRulesRegistry;
+import numbertostring.core.language.rules.LocalizedNumberRules;
 import numbertostring.core.model.IntegerNum;
 import numbertostring.core.model.Number;
 import numbertostring.core.providers.ConverterProvider;
@@ -87,7 +87,7 @@ public class NumberConverterFactory {
      * @throws IllegalArugmentException If the number type could not be determined.
      */
     private LocalizedNumberConverter getConverterForNumber(BigDecimal numberValue, Locale locale) {
-        LanguageRules rules = getLanguageRulesFromLocale(locale);
+        LocalizedNumberRules rules = getLanguageRulesFromLocale(locale);
         Number<?> numberInstance = detectNumberType(numberValue);
 
         ConverterProvider provider = converterRegistry.get(numberInstance.getClass());
@@ -110,8 +110,8 @@ public class NumberConverterFactory {
     }
 
     /** Fetches language-specific numerical rules from locale. */
-    private LanguageRules getLanguageRulesFromLocale(Locale locale) {
-        LanguageRules rules = LanguageRulesRegistry.getRules(locale);
+    private LocalizedNumberRules getLanguageRulesFromLocale(Locale locale) {
+        LocalizedNumberRules rules = LocalizedNumberRulesRegistry.getRules(locale);
         if (rules == null) {
             throw new UnsupportedLanguageException("Language not yet supported.");
         }

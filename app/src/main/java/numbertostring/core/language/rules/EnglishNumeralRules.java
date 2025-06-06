@@ -1,16 +1,16 @@
-package numbertostring.core.language;
+package numbertostring.core.language.rules;
 
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+
+import numbertostring.core.language.ScaleType;
 
 /**
  * Constants mapping number names to English words. Leading entries are null strings
  * for ease of implementation. Supports number-to-word conversion for {@code LocalizedNumberConverter}
 */
-public class EnglishNumeralRules {
+public class EnglishNumeralRules extends LocalizedNumberRules{
 
     public EnglishNumeralRules() {}
 
@@ -60,9 +60,14 @@ public class EnglishNumeralRules {
         Map.entry(new BigInteger("1000000000000000000000000000000000000000000000000"), "Quindecillion")
     ));
 
-    /** Function to apply English-specific rules for numbers less than {@code GROUPING}. */
+    @Override public ScaleType getScaleType() { return SCALE_TYPE; }
+    @Override public String getNegativeWord() { return NEGATIVE_WORD; }
+    @Override public Map<Integer, String> getNumeralsMap() { return NUMERALS; }
+    @Override public Map<BigInteger, String> getLargeUnitsMap() { return LARGE_UNITS;}
 
-    public static final Function<Integer, String> SMALL_NUMERAL_LOGIC = (num)-> {
+    /** Function to apply English-specific rules for numbers less than {@code GROUPING}. */
+    @Override
+    public final String applyNumeralRulesForSmallNumbers(int num) {
         StringBuilder result = new StringBuilder();
         if (num >= 100) {
             result.append(NUMERALS.get(num / 100)).append(" Hundred ");
@@ -81,16 +86,42 @@ public class EnglishNumeralRules {
             result.append(NUMERALS.get(num));
         }
         return result.toString().trim();
-    };
+    }
 
     /** Function to handle special rules for English. */
-    public static final BiFunction<String, BigInteger, String> LARGE_UNITS_LOGIC = (chunkString, largeUnit)-> {
+    @Override
+    public final String applyNumeralRulesForLargeUnits(String chunkString, BigInteger largeUnit) {
         String modifiedChunkString = chunkString;
         if (LARGE_UNITS.containsKey(largeUnit)) {
             String unitName = LARGE_UNITS.get(largeUnit);
             modifiedChunkString = chunkString + " " + unitName + " ";
         } 
         return modifiedChunkString.trim();
-    };
+    }
 
+
+    @Override
+    public String processNumberChunks(BigInteger num) {
+        StringBuilder result = new StringBuilder();
+        while(num.compareTo(BigInteger.ZERO) > 0) {
+            BigInteger groupingInteger = SCALE_TYPE.getGroupingValue(num);
+            BigInteger chunk = num;
+            BigInteger largestUnit = BigInteger.ONE;
+
+            while (chunk.compareTo(groupingInteger) >= 0) {
+                chunk = chunk.divide(groupingInteger);
+                largestUnit = largestUnit.multiply(groupingInteger);
+            }
+
+            String chunkString = applyNumeralRulesForSmallNumbers(chunk.intValue());
+
+            if (largestUnit.compareTo(BigInteger.ONE) > 0) {
+                result.append(applyNumeralRulesForLargeUnits(chunkString, largestUnit)).append(" ");
+            } else {
+                result.append(chunkString).append(" ");
+            }
+            num = num.mod(largestUnit);
+        }
+        return result.toString().trim();
+    }
 }

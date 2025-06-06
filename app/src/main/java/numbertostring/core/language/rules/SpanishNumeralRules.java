@@ -1,24 +1,24 @@
-package numbertostring.core.language;
+package numbertostring.core.language.rules;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import com.google.common.math.BigIntegerMath;
+
+import numbertostring.core.language.ScaleType;
 
 /**
  * Constants mapping number names to Spanish words.
  * Supports number-to-word conversion for {@code LocalizedNumberConverter}.
  */
-public class SpanishNumeralRules {
+public class SpanishNumeralRules extends LocalizedNumberRules{
 
     /**
      * Private constructor to prevent instantiation.
      */
-    private SpanishNumeralRules() {}
+    public SpanishNumeralRules() {}
 
     /** Spanish uses the Long scale for grouping large numbers. */
     public static final ScaleType SCALE_TYPE = ScaleType.LONG_SCALE;
@@ -55,14 +55,19 @@ public class SpanishNumeralRules {
         Map.entry(new BigInteger("1000000000000000000000000000000"), "Quintillones")
     ));
 
-    
+    @Override public ScaleType getScaleType() { return SCALE_TYPE; }
+    @Override public String getNegativeWord() { return NEGATIVE_WORD; }
+    @Override public Map<Integer, String> getNumeralsMap() { return NUMERALS; }
+    @Override public Map<BigInteger, String> getLargeUnitsMap() { return LARGE_UNITS; }
+
     /**
      * Converts any number smaller than 1_000_000_000 to its Spanish word form representation.
      * One billion is chosen as the upper range as this is when the long scale applies for unit names.
      * @param num
      * @return
      */
-    public static final String convertNumbersBelowBillion (int num) {
+    @Override
+    public final String applyNumeralRulesForSmallNumbers(int num) {
         if (num > 1_000_000_000) {
             throw new IllegalArgumentException(String.format("Number is larger than 1 billion : %d", num));
         }
@@ -73,11 +78,11 @@ public class SpanishNumeralRules {
 
         StringBuilder result = new StringBuilder();
         if (num >= 1_000_000) {
-            result.append(convertNumbersBelowBillion(num / 100_000_000)).append("Millones ");
+            result.append(applyNumeralRulesForSmallNumbers(num / 100_000_000)).append("Millones ");
         }
 
         if (num >= 1_000) {
-            String significantDigits = convertNumbersBelowBillion(num / 1_000);
+            String significantDigits = applyNumeralRulesForSmallNumbers(num / 1_000);
             // Remove "Uno" in front of "Mil"
             if (significantDigits.equals("Uno")) {
                 result.append(" Mil ");
@@ -124,10 +129,10 @@ public class SpanishNumeralRules {
     }
 
 
-    public static final Function<Integer, String> SMALL_NUMERAL_LOGIC = SpanishNumeralRules::convertNumbersBelowBillion;
 
     /**  */
-    public static final BiFunction<String, BigInteger, String> LARGE_UNITS_LOGIC = (chunkString, largeUnit) -> {
+    @Override
+    public final String applyNumeralRulesForLargeUnits(String chunkString, BigInteger largeUnit)  {
         String modifiedChunkString = chunkString;
         if (LARGE_UNITS.containsKey(largeUnit)) {
             String unitName = LARGE_UNITS.get(largeUnit);
@@ -151,5 +156,31 @@ public class SpanishNumeralRules {
             }
         }
         return modifiedChunkString.trim();
-    };
+    }
+
+
+    @Override
+    public String processNumberChunks(BigInteger num) {
+        StringBuilder result = new StringBuilder();
+        while(num.compareTo(BigInteger.ZERO) > 0) {
+            BigInteger groupingInteger = SCALE_TYPE.getGroupingValue(num);
+            BigInteger chunk = num;
+            BigInteger largestUnit = BigInteger.ONE;
+
+            while (chunk.compareTo(groupingInteger) >= 0) {
+                chunk = chunk.divide(groupingInteger);
+                largestUnit = largestUnit.multiply(groupingInteger);
+            }
+
+            String chunkString = applyNumeralRulesForSmallNumbers(chunk.intValue());
+
+            if (largestUnit.compareTo(BigInteger.ONE) > 0) {
+                result.append(applyNumeralRulesForLargeUnits(chunkString, largestUnit)).append(" ");
+            } else {
+                result.append(chunkString).append(" ");
+            }
+            num = num.mod(largestUnit);
+        }
+        return result.toString().trim();
+    }
 }

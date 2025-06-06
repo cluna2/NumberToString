@@ -3,8 +3,8 @@ package numbertostring.core.conversion;
 import java.math.BigInteger;
 import java.util.Locale;
 
-import numbertostring.core.language.rules.LanguageRules;
-import numbertostring.core.language.rules.LanguageRulesRegistry;
+import numbertostring.core.language.LocalizedNumberRulesRegistry;
+import numbertostring.core.language.rules.LocalizedNumberRules;
 import numbertostring.core.model.IntegerNum;
 import numbertostring.core.model.Number;
 import numbertostring.core.utils.logger.GlobalLogger;
@@ -24,14 +24,14 @@ public class IntegerNumConverter extends LocalizedNumberConverter{
 
     /** Default constructor assumes English for conversion */
     public IntegerNumConverter() {
-        super(LanguageRulesRegistry.getRules(Locale.ENGLISH));
+        super(LocalizedNumberRulesRegistry.getRules(Locale.ENGLISH));
     }
 
     /**
      * Creates an instance aware of number conversion rules for user's desired language.
      * @param rules object holding language-specific constants
      */
-    public IntegerNumConverter(LanguageRules rules) {
+    public IntegerNumConverter(LocalizedNumberRules rules) {
         super(rules); 
     }
 
@@ -64,7 +64,7 @@ public class IntegerNumConverter extends LocalizedNumberConverter{
      */
     private String convertNumberToWords(IntegerNum num) {
         if (num.getValue().equals(BigInteger.ZERO)){
-            return rules.getNumeralsMap().get(0);
+            return rules.applyNumeralRulesForZero();
         }
 
         boolean isNegative = num.isNegative();
@@ -73,52 +73,23 @@ public class IntegerNumConverter extends LocalizedNumberConverter{
             absoluteInteger = absoluteInteger.negate();
         }
         StringBuilder output = new StringBuilder();
-        String positiveString = processNumberByChunk(absoluteInteger);
+        String positiveString = processNumber(absoluteInteger);
 
         output.insert(0, positiveString);
         if (isNegative) {
-            output.insert(0, rules.getNegativeWord() + " ");   
+            output.insert(0, rules.applyNegativeHandling(positiveString) + " ");   
         }
         return output.toString().trim();
     }
 
     /**
-     * Processes positive numbers recursively by breaking them into chunks. Chunks are defined 
-     * by the language's ways of grouping numbers.
-     * (e.g. Japanese using 4-digit groupings (10,000) vs English (1,000))
+     * Processes numbers recursively by breaking them into chunks.
+     * Delegates all chunk-processing logic to `LocalizedNumberRules`, ensuring flexibility for non-positional numeral systems.
      * @param num BigInteger number to convert.
      * @return Converted number.
      */
-    private String processNumberByChunk(BigInteger current) {
-        StringBuilder result = new StringBuilder();
-
-        // Reduce the number mod(groupingNumber) to process by chunks.
-        while(current.compareTo(BigInteger.ZERO) > 0) {
-
-            // The grouping number may change dynamically depending on a lanugage's scale.
-            BigInteger groupingInteger = rules.getGrouping(current);
-            BigInteger chunk = current;
-            BigInteger largestUnit = BigInteger.ONE;
-
-            // Reduce a chunk until it is smaller than the grouping number before processing.
-            while (chunk.compareTo(groupingInteger) >= 0) {
-                chunk = chunk.divide(groupingInteger);
-                largestUnit = largestUnit.multiply(groupingInteger);
-            }
-
-            String chunkString = rules.applyLanguageRulesForSmallNumbers(chunk.intValue());
-
-            // Apply appropriate large unit if applicable after extracting numerals.
-            if (largestUnit.compareTo(BigInteger.ONE) > 0 && rules.getLargeUnits().containsKey(largestUnit)) {
-                String modifiedChunkStringWithUnits = rules.applyLanguageRulesForLargeUnits(chunkString, largestUnit); 
-                result.append(modifiedChunkStringWithUnits).append(" ");
-            } else {
-                result.append(chunkString).append(" ");
-            }
-            current = current.mod(largestUnit);
-        }
-        return result.toString().trim();
-    }
-
     
+    private String processNumber(BigInteger num) {
+        return rules.processNumberChunks(num);
+    }
 }
