@@ -1,7 +1,7 @@
 package numbertostring.core.factory;
 
 import numbertostring.core.model.IntegerNum;
-import numbertostring.core.providers.IntegerNumConverterProvider;
+import numbertostring.core.provider.IntegerNumConverterProvider;
 
 public class NumberConverterFactorySingleton {
     private static final NumberConverterFactory INSTANCE = new NumberConverterFactory();

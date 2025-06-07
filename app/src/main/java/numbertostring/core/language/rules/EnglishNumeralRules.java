@@ -1,25 +1,23 @@
 package numbertostring.core.language.rules;
 
 import java.math.BigInteger;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import numbertostring.core.language.ScaleType;
+import numbertostring.core.exception.NumeralRulesException;
+import numbertostring.core.language.GroupingStrategy;
+import numbertostring.core.model.NumberBase;
 
 /**
  * Constants mapping number names to English words. Leading entries are null strings
  * for ease of implementation. Supports number-to-word conversion for {@code LocalizedNumberConverter}
 */
-public class EnglishNumeralRules extends LocalizedNumberRules{
+public class EnglishNumeralRules extends LocalizedNumeralRules{
+
+
 
     public EnglishNumeralRules() {}
-
-    /** Type of scale used in English. */
-    public static final ScaleType SCALE_TYPE = ScaleType.SHORT_SCALE;
-
-    /** Constant for minus word in English. */
-    public static final String NEGATIVE_WORD = "Negative";
-
 
 
     /** Map of ints to English numeral words up to one hundred. Uses a TreeMap to guarantee ascending order
@@ -59,11 +57,37 @@ public class EnglishNumeralRules extends LocalizedNumberRules{
         Map.entry(new BigInteger("1000000000000000000000000000000000000000000000"), "Quattuordecillion"),
         Map.entry(new BigInteger("1000000000000000000000000000000000000000000000000"), "Quindecillion")
     ));
+    
+    @Override
+    public String getLanguageCode() {
+        return Locale.ENGLISH.getLanguage().toLowerCase();
+    }
+    
+    @Override
+    public boolean isPositionalSystem() {
+        return true;
+    }
+    
+    @Override
+    public NumberBase getNumberBase() {
+        return NumberBase.BASE_10;
+    }
 
-    @Override public ScaleType getScaleType() { return SCALE_TYPE; }
-    @Override public String getNegativeWord() { return NEGATIVE_WORD; }
-    @Override public Map<Integer, String> getNumeralsMap() { return NUMERALS; }
-    @Override public Map<BigInteger, String> getLargeUnitsMap() { return LARGE_UNITS;}
+    @Override 
+    public GroupingStrategy getGroupingStrategy() {
+         return GroupingStrategy.SHORT_SCALE; 
+    }
+
+    @Override
+    public String applyNumeralRulesForZero() {
+        return "Zero";
+    }
+
+    @Override
+    public String applyNegativeHandling(String numberString) {
+        return "Negative " + numberString;
+    }
+
 
     /** Function to apply English-specific rules for numbers less than {@code GROUPING}. */
     @Override
@@ -88,40 +112,16 @@ public class EnglishNumeralRules extends LocalizedNumberRules{
         return result.toString().trim();
     }
 
-    /** Function to handle special rules for English. */
+    /** Function to handle large units in English. 
+     * Simply appends the unit name if it exists.
+     */
     @Override
     public final String applyNumeralRulesForLargeUnits(String chunkString, BigInteger largeUnit) {
-        String modifiedChunkString = chunkString;
-        if (LARGE_UNITS.containsKey(largeUnit)) {
-            String unitName = LARGE_UNITS.get(largeUnit);
-            modifiedChunkString = chunkString + " " + unitName + " ";
-        } 
-        return modifiedChunkString.trim();
+        return (chunkString + " " + LARGE_UNITS.getOrDefault(largeUnit, "") + " ").trim();
     }
 
-
     @Override
-    public String processNumberChunks(BigInteger num) {
-        StringBuilder result = new StringBuilder();
-        while(num.compareTo(BigInteger.ZERO) > 0) {
-            BigInteger groupingInteger = SCALE_TYPE.getGroupingValue(num);
-            BigInteger chunk = num;
-            BigInteger largestUnit = BigInteger.ONE;
-
-            while (chunk.compareTo(groupingInteger) >= 0) {
-                chunk = chunk.divide(groupingInteger);
-                largestUnit = largestUnit.multiply(groupingInteger);
-            }
-
-            String chunkString = applyNumeralRulesForSmallNumbers(chunk.intValue());
-
-            if (largestUnit.compareTo(BigInteger.ONE) > 0) {
-                result.append(applyNumeralRulesForLargeUnits(chunkString, largestUnit)).append(" ");
-            } else {
-                result.append(chunkString).append(" ");
-            }
-            num = num.mod(largestUnit);
-        }
-        return result.toString().trim();
+    public String applyNonPositionalConversion(BigInteger num) {
+        throw new NumeralRulesException("English does not support non-positional number conversion.");
     }
 }

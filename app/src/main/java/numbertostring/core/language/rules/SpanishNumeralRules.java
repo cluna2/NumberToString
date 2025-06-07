@@ -7,25 +7,22 @@ import java.util.TreeMap;
 
 import com.google.common.math.BigIntegerMath;
 
-import numbertostring.core.language.ScaleType;
+import numbertostring.core.exception.NumeralRulesException;
+import numbertostring.core.language.GroupingStrategy;
+import numbertostring.core.model.NumberBase;
 
 /**
  * Constants mapping number names to Spanish words.
  * Supports number-to-word conversion for {@code LocalizedNumberConverter}.
  */
-public class SpanishNumeralRules extends LocalizedNumberRules{
+public class SpanishNumeralRules extends LocalizedNumeralRules{
 
     /**
-     * Private constructor to prevent instantiation.
+     * Rules object.
      */
     public SpanishNumeralRules() {}
 
-    /** Spanish uses the Long scale for grouping large numbers. */
-    public static final ScaleType SCALE_TYPE = ScaleType.LONG_SCALE;
-
-    /** Constant for negative numbers in Spanish. */
-    public static final String NEGATIVE_WORD = "Menos";
-
+    
     /** Map of ints to Spanish numeral words up to one hundred. */
     public static final TreeMap<Integer, String> NUMERALS = new TreeMap<>(Map.ofEntries(
         Map.entry(0, "Cero"), Map.entry(1, "Uno"), Map.entry(2, "Dos"), Map.entry(3, "Tres"),
@@ -37,11 +34,12 @@ public class SpanishNumeralRules extends LocalizedNumberRules{
         Map.entry(50, "Cincuenta"), Map.entry(60, "Sesenta"), Map.entry(70, "Setenta"), Map.entry(80, "Ochenta"),
         Map.entry(90, "Noventa"), Map.entry(100, "Cien"), Map.entry(200, "Doscientos"), Map.entry(300, "Trescientos"),
         Map.entry(400, "Cuatrocientos"), Map.entry(500, "Quinientos"), Map.entry(600, "Seiscientos"),
-        Map.entry(700, "Setecientos"), Map.entry(800, "Ochocientos"), Map.entry(900, "Novecientos")
+        Map.entry(700, "Setecientos"), Map.entry(800, "Ochocientos"), Map.entry(900, "Novecientos"),
+        Map.entry(1000, "Mil")
     ));
 
 
-    /** Map of large units to Spanish equivalents. */
+    /** Map of large units to Spanish equivalents. The unit names are default pluaralized. */
     public static final Map<BigInteger, String> LARGE_UNITS = new TreeMap<>(Map.ofEntries(
         Map.entry(BigInteger.valueOf(1_000), "Mil"),
         Map.entry(BigInteger.valueOf(1_000_000), "Millones"),
@@ -55,10 +53,48 @@ public class SpanishNumeralRules extends LocalizedNumberRules{
         Map.entry(new BigInteger("1000000000000000000000000000000"), "Quintillones")
     ));
 
-    @Override public ScaleType getScaleType() { return SCALE_TYPE; }
-    @Override public String getNegativeWord() { return NEGATIVE_WORD; }
-    @Override public Map<Integer, String> getNumeralsMap() { return NUMERALS; }
-    @Override public Map<BigInteger, String> getLargeUnitsMap() { return LARGE_UNITS; }
+
+    /** Map of pluarl large unit names to singular units.
+     * Shown here for clarity, even if this map is equivalent
+     * to removing the final two characters of each plural form to achieve the singular form
+     */
+    private static final Map<String, String> SINGULAR_LARGE_UNITS = Map.of(
+        "Millones", "Millon",
+        "Billones", "Billon",
+        "Trillones", "Trillon",
+        "Cuatrillones", "Cuatrillón",
+        "Quintillones", "Quintillón"
+    );
+
+    @Override
+    public String getLanguageCode() {
+        return "es".toLowerCase();
+    }
+
+
+    @Override
+    public boolean isPositionalSystem() {
+        return true;
+    }
+
+    @Override
+    public NumberBase getNumberBase() {
+        return NumberBase.BASE_10;
+    }
+    
+    @Override
+    public GroupingStrategy getGroupingStrategy() {
+        return GroupingStrategy.LONG_SCALE; 
+    }
+    @Override
+    public String applyNumeralRulesForZero() {
+        return "Cero";
+    }
+
+    @Override
+    public String applyNegativeHandling(String numberString) {
+        return "Menos " + numberString;
+    }
 
     /**
      * Converts any number smaller than 1_000_000_000 to its Spanish word form representation.
@@ -128,8 +164,6 @@ public class SpanishNumeralRules extends LocalizedNumberRules{
         return result.toString().trim();
     }
 
-
-
     /**  */
     @Override
     public final String applyNumeralRulesForLargeUnits(String chunkString, BigInteger largeUnit)  {
@@ -141,8 +175,8 @@ public class SpanishNumeralRules extends LocalizedNumberRules{
             if (chunkString.equals("Uno")) {
                 // Powers of 10^6  require the singular "Un".
                 // The unit name is also made singular
-                if (exponent % 6 == 0 && exponent != 1) {
-                    String singularUnitName = unitName.substring(0, unitName.length() - 2);
+                if (exponent % 6 == 0) {
+                    String singularUnitName = SINGULAR_LARGE_UNITS.getOrDefault(unitName, unitName);
                     modifiedChunkString = "Un " + singularUnitName + " ";
                 // 1000 itself is just "Mil"
                 } else if (exponent == 3) {
@@ -158,29 +192,9 @@ public class SpanishNumeralRules extends LocalizedNumberRules{
         return modifiedChunkString.trim();
     }
 
-
     @Override
-    public String processNumberChunks(BigInteger num) {
-        StringBuilder result = new StringBuilder();
-        while(num.compareTo(BigInteger.ZERO) > 0) {
-            BigInteger groupingInteger = SCALE_TYPE.getGroupingValue(num);
-            BigInteger chunk = num;
-            BigInteger largestUnit = BigInteger.ONE;
-
-            while (chunk.compareTo(groupingInteger) >= 0) {
-                chunk = chunk.divide(groupingInteger);
-                largestUnit = largestUnit.multiply(groupingInteger);
-            }
-
-            String chunkString = applyNumeralRulesForSmallNumbers(chunk.intValue());
-
-            if (largestUnit.compareTo(BigInteger.ONE) > 0) {
-                result.append(applyNumeralRulesForLargeUnits(chunkString, largestUnit)).append(" ");
-            } else {
-                result.append(chunkString).append(" ");
-            }
-            num = num.mod(largestUnit);
-        }
-        return result.toString().trim();
+    public String applyNonPositionalConversion(BigInteger num) {
+       throw new NumeralRulesException("English does not support non-positional number conversion.");
     }
+
 }

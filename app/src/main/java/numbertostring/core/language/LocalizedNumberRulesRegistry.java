@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import numbertostring.core.language.rules.EnglishNumeralRules;
-import numbertostring.core.language.rules.LocalizedNumberRules;
+import numbertostring.core.language.rules.LocalizedNumeralRules;
 import numbertostring.core.language.rules.SpanishNumeralRules;
 
 
@@ -14,7 +14,7 @@ import numbertostring.core.language.rules.SpanishNumeralRules;
  * Implementation for LanguageRulesProvider. Responsible for creating a LanguageRules object.
  */
 public class LocalizedNumberRulesRegistry  {
-    private static final Map<String, LocalizedNumberRules> registry = new ConcurrentHashMap<>();    
+    private static final Map<String, LocalizedNumeralRules> registry = new ConcurrentHashMap<>();    
     
     /** Default constructor. */
     private LocalizedNumberRulesRegistry() {}
@@ -23,16 +23,22 @@ public class LocalizedNumberRulesRegistry  {
     static {
         register("en", new EnglishNumeralRules());
         register("es", new SpanishNumeralRules());
+
     }
 
     /** Registers a new numeral rule implementation */
-    public static void register(String language, LocalizedNumberRules rules) {
+    public static void register(String language, LocalizedNumeralRules rules) {
         registry.put(language.toLowerCase(), rules);
     }
 
-    /** Returns the numeral rules for a given locale */
-    public static LocalizedNumberRules getRules(Locale locale) {
-        return registry.get(locale.getLanguage().toLowerCase());
+    /**
+     * Retrieves numeral rules based on locale.
+     * @param locale User's locale.
+     * @return Corresponding LocalizedNumberRules implementation.
+     */
+    public static LocalizedNumeralRules getRules(Locale locale) {
+        String key = locale.toLanguageTag().toLowerCase();
+        return registry.getOrDefault(key, registry.get(locale.getLanguage().toLowerCase()));
     }
 
 }

@@ -1,12 +1,12 @@
-package numbertostring.core.providers;
+package numbertostring.core.provider;
 
 import numbertostring.core.conversion.LocalizedNumberConverter;
-import numbertostring.core.language.rules.LocalizedNumberRules;
+import numbertostring.core.language.rules.LocalizedNumeralRules;
 
 /**
  * Generic interface for providing number converters based on language rules.
  */
 @FunctionalInterface
 public interface ConverterProvider {
-    LocalizedNumberConverter createConverter(LocalizedNumberRules rules);
+    LocalizedNumberConverter createConverter(LocalizedNumeralRules rules);
 }

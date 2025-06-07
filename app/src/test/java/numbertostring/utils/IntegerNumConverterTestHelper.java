@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import numbertostring.core.conversion.IntegerNumConverter;
 import numbertostring.core.language.LocalizedNumberRulesRegistry;
-import numbertostring.core.language.rules.LocalizedNumberRules;
+import numbertostring.core.language.rules.LocalizedNumeralRules;
 import numbertostring.core.model.IntegerNum;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class IntegerNumConverterTestHelper {
     
     public static IntegerNumConverter createConverter(Locale locale) {
-        LocalizedNumberRules rules = LocalizedNumberRulesRegistry.getRules(locale);
+        LocalizedNumeralRules rules = LocalizedNumberRulesRegistry.getRules(locale);
         return new IntegerNumConverter(rules);
     }
 

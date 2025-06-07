@@ -1536,3 +1536,21 @@
 2025-06-05 16:16:39 [main] INFO   - Creating service object.
 2025-06-05 16:17:24 [main] INFO   - Creating service object.
 2025-06-05 16:17:34 [main] INFO   - Creating service object.
+2025-06-05 22:28:18 [main] DEBUG  - Creating converter for IntegerNum type.
+2025-06-05 22:28:18 [main] DEBUG  - Beginning conversion for -2147483648.
+2025-06-05 22:28:18 [main] DEBUG  - Conversion complete for -2147483648. Output is "Menos Dos Mil Ciento Cuarenta Y Siete Millones Cuatrocientos Ochenta Y Tres Mil Seiscientos Cuarenta Y Ocho"
+2025-06-05 22:28:18 [main] DEBUG  - Conversion complete. Creating response.
+2025-06-05 22:28:37 [main] DEBUG  - Creating converter for IntegerNum type.
+2025-06-05 22:28:37 [main] DEBUG  - Beginning conversion for -2147483648.
+2025-06-05 22:28:37 [main] DEBUG  - Conversion complete for -2147483648. Output is "Menos Dos Mil Ciento Cuarenta Y Siete Millones Cuatrocientos Ochenta Y Tres Mil Seiscientos Cuarenta Y Ocho"
+2025-06-05 22:28:37 [main] DEBUG  - Conversion complete. Creating response.
+2025-06-05 22:29:34 [main] DEBUG  - Creating converter for IntegerNum type.
+2025-06-05 22:29:34 [main] DEBUG  - Beginning conversion for -2147483648.
+2025-06-05 22:33:01 [main] DEBUG  - Creating converter for IntegerNum type.
+2025-06-05 22:33:01 [main] DEBUG  - Beginning conversion for -2147483648.
+2025-06-06 15:20:25 [main] WARN   - Response object created. Response is: NumberToWordsResponse(convertedData=ConvertedNumberDTO(originalNumber=[1, 3], convertedText=, language=es), status=FAILURE, exception=numbertostring.api.exception.NumberConversionException: No converter registered for type: RationalNum)
+2025-06-06 15:23:54 [main] DEBUG  - Creating converter for RationalNum type.
+2025-06-06 15:24:19 [main] DEBUG  - Beginning conversion for 1.
+2025-06-06 15:24:19 [main] DEBUG  - Conversion complete for 1. Output is "Uno"
+2025-06-06 15:24:22 [main] DEBUG  - Beginning conversion for 3.
+2025-06-06 15:24:22 [main] DEBUG  - Conversion complete for 3. Output is "Tres"

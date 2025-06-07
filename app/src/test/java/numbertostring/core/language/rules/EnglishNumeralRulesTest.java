@@ -22,15 +22,38 @@ public class EnglishNumeralRulesTest {
     })
     void testNumeralConversion(String input, String expectedOutput) {
         BigInteger num = new BigInteger(input);
-        assertEquals(expectedOutput, rules.processNumberChunks(num));
+        assertEquals(expectedOutput, rules.processNumber(num));
     }
 
     @Test
     void testChunkProcessing() {
         assertEquals("One Hundred Twenty Three Thousand Four Hundred Fifty Six",
-            rules.processNumberChunks(BigInteger.valueOf(123456)));
-        assertEquals("Ten Thousand", rules.processNumberChunks(BigInteger.valueOf(10_000)));
+            rules.processNumber(BigInteger.valueOf(123456)));
+        assertEquals("Ten Thousand", rules.processNumber(BigInteger.valueOf(10_000)));
         assertEquals("One Billion Two Hundred Thirty Four Million Five Hundred Sixty Seven Thousand Eight Hundred Ninety",
-            rules.processNumberChunks(BigInteger.valueOf(1_234_567_890)));
+            rules.processNumber(BigInteger.valueOf(1_234_567_890)));
     }
+
+
+    @Test
+    void testParsesLongMaxValue() {
+        String expectedOutput = "Nine Quintillion Two Hundred Twenty Three Quadrillion "
+                      + "Three Hundred Seventy Two Trillion Thirty Six Billion "
+                      + "Eight Hundred Fifty Four Million Seven Hundred Seventy Five "
+                      + "Thousand Eight Hundred Seven";
+        BigInteger num = BigInteger.valueOf(Long.MAX_VALUE);
+        assertEquals(expectedOutput, rules.processNumber(num));
+    }
+
+    @Test
+    void testParsesLongMinValue() {
+        String expectedOutput = "Negative Nine Quintillion Two Hundred Twenty Three Quadrillion "
+                      + "Three Hundred Seventy Two Trillion Thirty Six Billion "
+                      + "Eight Hundred Fifty Four Million Seven Hundred Seventy Five "
+                      + "Thousand Eight Hundred Eight";
+        // Each rules object assumes non-negative input. IntegerNumConverter handles negative cases.
+        BigInteger num = BigInteger.valueOf(Long.MIN_VALUE).negate();
+        assertEquals(expectedOutput, "Negative " + rules.processNumber(num));
+    }
+
 }

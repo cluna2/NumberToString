@@ -5,7 +5,11 @@ import java.math.RoundingMode;
 
 import com.google.common.math.BigIntegerMath;
 
-public enum ScaleType {
+/** Enum that defines how different languages may group numbers differently.
+ * For example, the short and long scales are two alternative ways to group powers
+ * of ten, even though the scales refer to the same number representation (base 10).
+ */
+public enum GroupingStrategy {
     SHORT_SCALE {
         @Override
         public BigInteger getGroupingValue(BigInteger num) {
