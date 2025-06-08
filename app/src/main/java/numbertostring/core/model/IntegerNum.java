@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import numbertostring.core.conversion.IntegerNumConverter;
 import numbertostring.core.conversion.LocalizedNumberConverter;
+import numbertostring.core.language.formatting.LocalizedGrammarFormatter;
 import numbertostring.core.language.rules.LocalizedNumeralRules;
 
 
@@ -55,8 +56,9 @@ public class IntegerNum extends Number<IntegerNum>{
      * @return Instance of IntegerNumConverter
      */
     @Override
-    public LocalizedNumberConverter getConverter(LocalizedNumeralRules rules) {
-        return new IntegerNumConverter(rules);
+    public LocalizedNumberConverter getConverter(
+        LocalizedNumeralRules rules, LocalizedGrammarFormatter formatter) {
+        return new IntegerNumConverter(rules, formatter);
     }
     /**
      * Determines sign of IntegerNum.

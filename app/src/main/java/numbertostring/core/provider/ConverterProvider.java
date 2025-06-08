@@ -1,6 +1,7 @@
 package numbertostring.core.provider;
 
 import numbertostring.core.conversion.LocalizedNumberConverter;
+import numbertostring.core.language.formatting.LocalizedGrammarFormatter;
 import numbertostring.core.language.rules.LocalizedNumeralRules;
 
 /**
@@ -8,5 +9,6 @@ import numbertostring.core.language.rules.LocalizedNumeralRules;
  */
 @FunctionalInterface
 public interface ConverterProvider {
-    LocalizedNumberConverter createConverter(LocalizedNumeralRules rules);
+    LocalizedNumberConverter createConverter(
+        LocalizedNumeralRules rules, LocalizedGrammarFormatter formatter);
 }

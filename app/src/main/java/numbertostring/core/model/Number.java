@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import lombok.RequiredArgsConstructor;
 import numbertostring.core.conversion.LocalizedNumberConverter;
+import numbertostring.core.language.formatting.LocalizedGrammarFormatter;
 import numbertostring.core.language.rules.LocalizedNumeralRules;
 
 
@@ -24,7 +25,8 @@ public abstract class Number<T extends Number<T>> {
      * @param rules set of language-specific rules for Converter instance
      * @return LocalizedNumberConverter of type T
      */
-    public abstract LocalizedNumberConverter getConverter(LocalizedNumeralRules rules);
+    public abstract LocalizedNumberConverter getConverter(
+        LocalizedNumeralRules rules, LocalizedGrammarFormatter formatter);
 
     /** Underlying value of number in base 10. Stored using BigDecimal. */
     protected final BigDecimal value;

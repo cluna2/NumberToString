@@ -1,4 +1,4 @@
-package numbertostring.api;
+package numbertostring.unit.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import numbertostring.api.NumberToWordsService;
 import numbertostring.api.dto.NumberToWordsRequest;
 import numbertostring.api.dto.NumberToWordsResponse;
 import numbertostring.api.exception.NumberConversionException;

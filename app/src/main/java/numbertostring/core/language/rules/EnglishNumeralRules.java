@@ -15,14 +15,12 @@ import numbertostring.core.model.NumberBase;
 */
 public class EnglishNumeralRules extends LocalizedNumeralRules{
 
-
-
     public EnglishNumeralRules() {}
 
 
     /** Map of ints to English numeral words up to one hundred. Uses a TreeMap to guarantee ascending order
      * of the keys. Supports processing by chunks. */
-    public static final TreeMap<Integer, String> NUMERALS = new TreeMap<Integer, String>(Map.ofEntries(
+    protected static final TreeMap<Integer, String> NUMERALS = new TreeMap<Integer, String>(Map.ofEntries(
         Map.entry(0, "Zero"), Map.entry(1, "One"), Map.entry(2, "Two"), Map.entry(3, "Three"),
         Map.entry(4, "Four"), Map.entry(5, "Five"), Map.entry(6, "Six"), Map.entry(7, "Seven"),
         Map.entry(8, "Eight"), Map.entry(9, "Nine"), Map.entry(10, "Ten"),
@@ -38,7 +36,7 @@ public class EnglishNumeralRules extends LocalizedNumeralRules{
      * Units are defined up to a Trillion
      * but can easily be extended by filling out the map with more names.
     */
-    public static final Map<BigInteger, String> LARGE_UNITS = new TreeMap<BigInteger, String>(Map.ofEntries(
+    protected static final Map<BigInteger, String> LARGE_UNITS = new TreeMap<BigInteger, String>(Map.ofEntries(
         Map.entry(BigInteger.valueOf(1000), "Thousand"),
         Map.entry(BigInteger.valueOf(1_000_000), "Million"),
         Map.entry(BigInteger.valueOf(1_000_000_000), "Billion"),
@@ -62,11 +60,7 @@ public class EnglishNumeralRules extends LocalizedNumeralRules{
     public String getLanguageCode() {
         return Locale.ENGLISH.getLanguage().toLowerCase();
     }
-    
-    @Override
-    public boolean isPositionalSystem() {
-        return true;
-    }
+
     
     @Override
     public NumberBase getNumberBase() {
@@ -89,12 +83,12 @@ public class EnglishNumeralRules extends LocalizedNumeralRules{
     }
 
 
-    /** Function to apply English-specific rules for numbers less than {@code GROUPING}. */
+    /** Function to apply English-specific rules for numbers less than 1000. */
     @Override
     public final String applyNumeralRulesForSmallNumbers(int num) {
         StringBuilder result = new StringBuilder();
         if (num >= 100) {
-            result.append(NUMERALS.get(num / 100)).append(" Hundred ");
+            result.append(NUMERALS.get(num / 100)).append(" ");
             num %= 100;
         }
 
@@ -112,16 +106,16 @@ public class EnglishNumeralRules extends LocalizedNumeralRules{
         return result.toString().trim();
     }
 
-    /** Function to handle large units in English. 
-     * Simply appends the unit name if it exists.
-     */
-    @Override
-    public final String applyNumeralRulesForLargeUnits(String chunkString, BigInteger largeUnit) {
-        return (chunkString + " " + LARGE_UNITS.getOrDefault(largeUnit, "") + " ").trim();
-    }
-
     @Override
     public String applyNonPositionalConversion(BigInteger num) {
         throw new NumeralRulesException("English does not support non-positional number conversion.");
     }
+
+
+    @Override
+    public String getLargeUnitName(BigInteger largeUnit) {
+        return LARGE_UNITS.getOrDefault(largeUnit, "");
+    }
+
+
 }

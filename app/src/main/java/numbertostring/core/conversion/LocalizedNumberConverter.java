@@ -3,6 +3,7 @@ package numbertostring.core.conversion;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import numbertostring.core.language.formatting.LocalizedGrammarFormatter;
 import numbertostring.core.language.rules.LocalizedNumeralRules;
 import numbertostring.core.model.Number;
 
@@ -19,6 +20,8 @@ public abstract class LocalizedNumberConverter {
      * @return Language-specific rules defining conversion logic.
     */
     protected final LocalizedNumeralRules rules;
+
+    protected final LocalizedGrammarFormatter formatter;
 
     /**
      * Converts a Number to words.

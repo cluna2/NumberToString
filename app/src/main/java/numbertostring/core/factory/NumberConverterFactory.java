@@ -2,7 +2,9 @@ package numbertostring.core.factory;
 
 import numbertostring.api.exception.UnsupportedLanguageException;
 import numbertostring.core.conversion.LocalizedNumberConverter;
+import numbertostring.core.language.LocalizedGrammarFormatterRegistry;
 import numbertostring.core.language.LocalizedNumberRulesRegistry;
+import numbertostring.core.language.formatting.LocalizedGrammarFormatter;
 import numbertostring.core.language.rules.LocalizedNumeralRules;
 import numbertostring.core.model.IntegerNum;
 import numbertostring.core.model.Number;
@@ -87,7 +89,8 @@ public class NumberConverterFactory {
      * @throws IllegalArugmentException If the number type could not be determined.
      */
     private LocalizedNumberConverter getConverterForNumber(Number<?> numberInstance, Locale locale) {
-        LocalizedNumeralRules rules = getLanguageRulesFromLocale(locale);
+        LocalizedNumeralRules rules = getNumeralRulesFromLocale(locale);
+        LocalizedGrammarFormatter formatter = getFormatterFromLocale(locale);
 
         ConverterProvider provider = converterRegistry.get(numberInstance.getClass());
         if (provider == null) {
@@ -95,7 +98,7 @@ public class NumberConverterFactory {
         }
 
         GlobalLogger.LOGGER.debug(String.format("Creating converter for %s type.", numberInstance.getClass().getSimpleName()));
-        return provider.createConverter(rules);
+        return provider.createConverter(rules, formatter);
     }
 
 
@@ -109,12 +112,21 @@ public class NumberConverterFactory {
     }
 
     /** Fetches language-specific numerical rules from locale. */
-    private LocalizedNumeralRules getLanguageRulesFromLocale(Locale locale) {
+    private LocalizedNumeralRules getNumeralRulesFromLocale(Locale locale) {
         LocalizedNumeralRules rules = LocalizedNumberRulesRegistry.getRules(locale);
         if (rules == null) {
             throw new UnsupportedLanguageException("Language not yet supported.");
         }
         return rules;
     }
+
+    private LocalizedGrammarFormatter getFormatterFromLocale(Locale locale) {
+        LocalizedGrammarFormatter formatter = LocalizedGrammarFormatterRegistry.getFormatter(locale);
+        if (formatter == null) {
+            throw new UnsupportedLanguageException("Language not yet supported.");
+        }
+        return formatter;
+    }
+
 }
 

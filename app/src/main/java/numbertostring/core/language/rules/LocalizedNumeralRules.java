@@ -4,7 +4,6 @@ import java.math.BigInteger;
 
 import numbertostring.core.exception.NumberProcessingException;
 import numbertostring.core.language.GroupingStrategy;
-import numbertostring.core.language.processing.PositionalNumberProcessor;
 import numbertostring.core.model.NumberBase;
 
 /**
@@ -14,15 +13,12 @@ import numbertostring.core.model.NumberBase;
 public abstract class LocalizedNumeralRules {
 
     
-    /**   */
     public LocalizedNumeralRules() {}
     
     /** Getter for the Locale that this rules instance is implementing rules for.  */
     public abstract String getLanguageCode();
 
-    /** Returns whether the numeral system is positional or non-positional */
-    public abstract boolean isPositionalSystem();
-
+    /** Gets the radix (i.e. base) of the number system used. */
     public abstract NumberBase getNumberBase();
 
     /** Returns the scale type used by the language (Short Scale, Long Scale, etc.) */
@@ -38,20 +34,14 @@ public abstract class LocalizedNumeralRules {
     public abstract String applyNumeralRulesForSmallNumbers(int num);
 
     /** Converts a large unit into its word representation */
-    public abstract String applyNumeralRulesForLargeUnits(String chunk, BigInteger unit);
+    public abstract String getLargeUnitName(BigInteger largeUnit);
 
     /** Handles custom logic for non-positional numeral systems */
     public abstract String applyNonPositionalConversion(BigInteger num);
 
 
-    /** Processes number chunks in positional number systems with the positional number processor
-     * Non-positional number systems will rely on the conversion rules defined in their classes.
-     */
-    public String processNumber(BigInteger num) {
-        if (isPositionalSystem()) {
-            return new PositionalNumberProcessor(this).processChunks(num);
-        }
-        return applyNonPositionalConversion(num);
+    public boolean isPositionalSystem() {
+        return getNumberBase().isPositional();
     }
 
     public String applySmallNumeralRules(BigInteger chunk) {
@@ -61,10 +51,10 @@ public abstract class LocalizedNumeralRules {
         return applyNumeralRulesForSmallNumbers(chunk.intValue());
     }
 
-    public String applyLargeUnitsRules(String chunkString, BigInteger unit) {
-        if (unit == null || chunkString.isEmpty()) {
+    public String applyLargeUnitsRules(BigInteger largeUnit) {
+        if (largeUnit == null) {
             throw new NumberProcessingException("Chunk string or unit is null.");
         }
-        return applyNumeralRulesForLargeUnits(chunkString, unit);
+        return getLargeUnitName(largeUnit);
     }
 }

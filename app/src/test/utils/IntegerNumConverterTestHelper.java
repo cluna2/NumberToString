@@ -6,7 +6,9 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import numbertostring.core.conversion.IntegerNumConverter;
+import numbertostring.core.language.LocalizedGrammarFormatterRegistry;
 import numbertostring.core.language.LocalizedNumberRulesRegistry;
+import numbertostring.core.language.formatting.LocalizedGrammarFormatter;
 import numbertostring.core.language.rules.LocalizedNumeralRules;
 import numbertostring.core.model.IntegerNum;
 
@@ -16,7 +18,8 @@ public class IntegerNumConverterTestHelper {
     
     public static IntegerNumConverter createConverter(Locale locale) {
         LocalizedNumeralRules rules = LocalizedNumberRulesRegistry.getRules(locale);
-        return new IntegerNumConverter(rules);
+        LocalizedGrammarFormatter formatter = LocalizedGrammarFormatterRegistry.getFormatter(locale);
+        return new IntegerNumConverter(rules, formatter);
     }
 
     public static IntegerNum createNumber(BigInteger value) {

@@ -31,6 +31,8 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.6.0")
     // Mockito JUnit 5 extension
     testImplementation("org.mockito:mockito-junit-jupiter:5.6.0")
+    // ICU4J for unit tests
+    testImplementation("com.ibm.icu:icu4j:73.2")
 
     // Log4j interface 
     implementation("org.apache.logging.log4j:log4j-api:2.17.1")
@@ -56,6 +58,12 @@ tasks.named<Test>("test") {
     jvmArgs("-XX:+EnableDynamicAgentLoading")
     jvmArgs("-Xshare:off") 
 
+    sourceSets {
+        val test by getting{
+            java.srcDirs("src/test/unit")
+            java.srcDirs("src/test/integration")
+        }
+    }
 }
 
 tasks.withType<JavaCompile> {

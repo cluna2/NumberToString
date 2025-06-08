@@ -1,4 +1,4 @@
-package numbertostring.core.language.rules;
+package numbertostring.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -8,8 +8,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-public class EnglishNumeralRulesTest {
-    private final EnglishNumeralRules rules = new EnglishNumeralRules();
+import numbertostring.core.conversion.IntegerNumConverter;
+import numbertostring.core.language.formatting.EnglishGrammarFormatter;
+import numbertostring.core.language.rules.EnglishNumeralRules;
+import numbertostring.core.model.IntegerNum;
+
+public class EnglishNumberConversionIntegrationTest {
+
+    private static final EnglishNumeralRules rules = new EnglishNumeralRules();
+    private static final EnglishGrammarFormatter formatter = new EnglishGrammarFormatter();
+    private static final IntegerNumConverter converter = new IntegerNumConverter(rules, formatter);
 
     @ParameterizedTest
     @CsvSource({
@@ -22,16 +30,8 @@ public class EnglishNumeralRulesTest {
     })
     void testNumeralConversion(String input, String expectedOutput) {
         BigInteger num = new BigInteger(input);
-        assertEquals(expectedOutput, rules.processNumber(num));
-    }
-
-    @Test
-    void testChunkProcessing() {
-        assertEquals("One Hundred Twenty Three Thousand Four Hundred Fifty Six",
-            rules.processNumber(BigInteger.valueOf(123456)));
-        assertEquals("Ten Thousand", rules.processNumber(BigInteger.valueOf(10_000)));
-        assertEquals("One Billion Two Hundred Thirty Four Million Five Hundred Sixty Seven Thousand Eight Hundred Ninety",
-            rules.processNumber(BigInteger.valueOf(1_234_567_890)));
+        String actualOutput = converter.convertToWords(new IntegerNum(num));
+        assertEquals(expectedOutput, actualOutput);
     }
 
 
@@ -42,7 +42,8 @@ public class EnglishNumeralRulesTest {
                       + "Eight Hundred Fifty Four Million Seven Hundred Seventy Five "
                       + "Thousand Eight Hundred Seven";
         BigInteger num = BigInteger.valueOf(Long.MAX_VALUE);
-        assertEquals(expectedOutput, rules.processNumber(num));
+        String actualOutput = converter.convertToWords(new IntegerNum(num));
+        assertEquals(expectedOutput, actualOutput);
     }
 
     @Test
@@ -51,9 +52,9 @@ public class EnglishNumeralRulesTest {
                       + "Three Hundred Seventy Two Trillion Thirty Six Billion "
                       + "Eight Hundred Fifty Four Million Seven Hundred Seventy Five "
                       + "Thousand Eight Hundred Eight";
-        // Each rules object assumes non-negative input. IntegerNumConverter handles negative cases.
-        BigInteger num = BigInteger.valueOf(Long.MIN_VALUE).negate();
-        assertEquals(expectedOutput, "Negative " + rules.processNumber(num));
-    }
 
+        BigInteger num = BigInteger.valueOf(Long.MIN_VALUE);
+        String actualOutput = converter.convertToWords(new IntegerNum(num));
+        assertEquals(expectedOutput, actualOutput);
+    }
 }
